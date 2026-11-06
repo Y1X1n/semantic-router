@@ -956,7 +956,7 @@ class FailedProbeDiagnosticsTest(unittest.TestCase):
             "signal_errors": {"classifier:example": "classifier_evaluation_failed"},
             "signal_error_matches": {"classifier:example": True},
             "signal_confidences": {"keyword:example": 1.0},
-            "signal_values": {"structure:items": 2},
+            "signal_values": {"keyword:items": 2},
             "applied_unknown_policies": {"sample": "fail_closed"},
             "decision_error": "classification was unavailable",
             "metrics": {"classifier": {"execution_time_ms": 12.5}},

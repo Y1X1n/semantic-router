@@ -1041,7 +1041,6 @@ export interface ConfigSignals {
   preferences?: PreferenceSignal[]
   language?: LanguageSignal[]
   context?: ContextSignal[]
-  structure?: StructureSignal[]
   complexity?: ComplexitySignal[]
   modality?: ModalitySignal[]
   role_bindings?: RoleBindingSignal[]
@@ -1053,7 +1052,6 @@ export interface ConfigSignals {
   metadata?: MetadataSignal[]
   classifiers?: ClassifierSignal[]
   conversation?: ConversationSignal[]
-  events?: EventSignal[]
   input_modality?: InputModalitySignal[]
   systemone?: SystemOneSignal[]
   topic_continuity?: TopicContinuitySignal[]
@@ -1208,6 +1206,7 @@ export interface SemanticCacheRedisConfig {
 
 export interface KeywordSignal {
   name: string
+  description?: string
   operator: 'AND' | 'OR' | 'all' | 'any'
   keywords: string[]
   case_sensitive?: boolean
@@ -1217,6 +1216,8 @@ export interface KeywordSignal {
   bm25_threshold?: number
   ngram_threshold?: number
   ngram_arity?: number
+  count?: NumericPredicate
+  density?: NumericPredicate
 }
 
 export interface EmbeddingSignal {
@@ -1264,15 +1265,6 @@ export interface DomainSignal {
   description: string
   mmlu_categories?: string[]
   model_scores?: ModelScore[]
-}
-
-export interface EventSignal {
-  name: string
-  description?: string
-  event_types?: string[]
-  severities?: string[]
-  action_codes?: string[]
-  temporal?: boolean
 }
 
 export interface InputModalitySignal {
@@ -1396,31 +1388,11 @@ export interface ContextSignal {
   description?: string
 }
 
-export interface StructureSource {
-  type: string
-  pattern?: string
-  keywords?: string[]
-  case_sensitive?: boolean
-  sequences?: string[][]
-}
-
-export interface StructureFeature {
-  type: string
-  source: StructureSource
-}
-
 export interface NumericPredicate {
   gt?: number
   gte?: number
   lt?: number
   lte?: number
-}
-
-export interface StructureSignal {
-  name: string
-  description?: string
-  feature: StructureFeature
-  predicate?: NumericPredicate
 }
 
 export interface ConversationSource {
@@ -1531,7 +1503,6 @@ export interface ConfigData {
   preference_rules?: PreferenceSignal[]
   language_rules?: LanguageSignal[]
   context_rules?: ContextSignal[]
-  structure_rules?: StructureSignal[]
   complexity_rules?: ComplexitySignal[]
   jailbreak?: JailbreakSignal[]
   hallucination?: HallucinationSignal[]

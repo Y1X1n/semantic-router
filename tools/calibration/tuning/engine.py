@@ -338,7 +338,6 @@ _SIGNAL_TYPE_TO_MATCHED_KEY = {
     "category_kb": "category_kb",
     "jailbreak": "jailbreak",
     "pii": "pii",
-    "structure": "structure",
     "domain": "domains",
     "projection": "projection",
     "context": "context",
@@ -356,7 +355,6 @@ def _resolve_confidence_key(sig_type: str, sig_name: str) -> str:
         "category_kb": "category_kb",
         "jailbreak": "jailbreak",
         "pii": "pii",
-        "structure": "structure",
         "projection": "projection",
     }
     prefix = type_prefixes.get(sig_type, sig_type)

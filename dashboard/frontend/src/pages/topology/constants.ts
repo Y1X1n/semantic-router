@@ -29,7 +29,6 @@ const SIGNAL_ICON_OVERRIDES: Partial<Record<SignalType, string>> = {
   preference: 'PREF',
   language: 'LANG',
   context: 'CTX',
-  structure: 'STR',
   complexity: 'CPX',
   modality: 'MOD',
   authz: 'AUTH',
@@ -38,7 +37,6 @@ const SIGNAL_ICON_OVERRIDES: Partial<Record<SignalType, string>> = {
   pii: 'PII',
   kb: 'KB',
   conversation: 'CONV',
-  event: 'EVT',
   projection: 'PRJ',
 }
 
@@ -62,7 +60,6 @@ const SIGNAL_LATENCY_OVERRIDES: Partial<Record<SignalType, string>> = {
   preference: '200-500ms',
   language: '<1ms',
   context: '<1ms',
-  structure: '<1ms',
   complexity: '50-100ms',
   modality: '50-100ms',
   authz: '<1ms',
@@ -71,7 +68,6 @@ const SIGNAL_LATENCY_OVERRIDES: Partial<Record<SignalType, string>> = {
   pii: '10-50ms',
   kb: '10-50ms',
   conversation: '<1ms',
-  event: '<1ms',
   projection: '<1ms',
 }
 

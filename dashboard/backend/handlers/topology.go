@@ -163,7 +163,6 @@ type RouterMatchedSignals struct {
 	Preferences  []string `json:"preferences,omitempty"`
 	Language     []string `json:"language,omitempty"`
 	Context      []string `json:"context,omitempty"`
-	Structure    []string `json:"structure,omitempty"`
 	Complexity   []string `json:"complexity,omitempty"`
 	Modality     []string `json:"modality,omitempty"`
 	Authz        []string `json:"authz,omitempty"`
@@ -171,7 +170,6 @@ type RouterMatchedSignals struct {
 	PII          []string `json:"pii,omitempty"`
 	KB           []string `json:"kb,omitempty"`
 	Conversation []string `json:"conversation,omitempty"`
-	Event        []string `json:"event,omitempty"`
 	Projection   []string `json:"projection,omitempty"`
 }
 

@@ -22,7 +22,6 @@ export interface SignalConfig {
     | EmbeddingSignalConfig
     | DomainSignalConfig
     | ContextSignalConfig
-    | StructureSignalConfig
     | ComplexitySignalConfig
     | ModalitySignalConfig
     | AuthzSignalConfig
@@ -37,6 +36,8 @@ export interface KeywordSignalConfig {
   operator: 'AND' | 'OR'
   keywords: string[]
   case_sensitive: boolean
+  count?: NumericPredicateConfig
+  density?: NumericPredicateConfig
 }
 
 export interface EmbeddingSignalConfig {
@@ -58,36 +59,11 @@ export interface ContextSignalConfig {
   max_tokens?: string
 }
 
-export interface StructureSourceConfig {
-  type: string
-  pattern?: string
-  keywords?: string[]
-  case_sensitive?: boolean
-  sequences?: string[][]
-}
-
-export interface StructureFeatureConfig {
-  type: string
-  source?: StructureSourceConfig
-}
-
 export interface NumericPredicateConfig {
   gt?: number
   gte?: number
   lt?: number
   lte?: number
-}
-
-export interface StructureSignalConfig {
-  feature?: StructureFeatureConfig
-  predicate?: NumericPredicateConfig
-}
-
-export interface StructureRuleDefinition {
-  name: string
-  description?: string
-  feature: StructureFeatureConfig
-  predicate?: NumericPredicateConfig
 }
 
 export interface ComplexitySignalConfig {
@@ -458,7 +434,6 @@ export interface ConfigData {
     min_tokens?: string
     max_tokens?: string
   }>
-  structure_rules?: StructureRuleDefinition[]
   complexity_rules?: Array<{
     name: string
     threshold?: number
@@ -520,13 +495,6 @@ export interface ConfigData {
     description?: string
     feature?: Record<string, unknown>
     predicate?: Record<string, unknown>
-  }>
-  events?: Array<{
-    name: string
-    event_types?: string[]
-    severities?: string[]
-    action_codes?: string[]
-    temporal?: boolean
   }>
   projections?: {
     scores?: Array<{
@@ -617,7 +585,6 @@ export interface ConfigData {
       min_tokens?: string
       max_tokens?: string
     }>
-    structure?: StructureRuleDefinition[]
     complexity?: Array<{
       name: string
       threshold?: number
@@ -677,13 +644,6 @@ export interface ConfigData {
       description?: string
       feature?: Record<string, unknown>
       predicate?: Record<string, unknown>
-    }>
-    events?: Array<{
-      name: string
-      event_types?: string[]
-      severities?: string[]
-      action_codes?: string[]
-      temporal?: boolean
     }>
   }
   decisions?: Array<{

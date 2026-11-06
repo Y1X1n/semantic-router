@@ -91,7 +91,6 @@ func topologySignalMappings(matchedSignals *RouterMatchedSignals) []topologySign
 		{signalType: "user_feedback", names: matchedSignals.UserFeedback, reason: "User feedback matched", addPath: true},
 		{signalType: "language", names: matchedSignals.Language, reason: "Language detected", addPath: true},
 		{signalType: "context", names: matchedSignals.Context, reason: "Context token count matched", addPath: true},
-		{signalType: "structure", names: matchedSignals.Structure, reason: "Structure rule matched", addPath: true},
 		{signalType: "complexity", names: matchedSignals.Complexity, reason: "Complexity level matched", addPath: true},
 		{signalType: "modality", names: matchedSignals.Modality, reason: "Modality signal matched", addPath: true},
 		{signalType: "authz", names: matchedSignals.Authz, reason: "Authorization signal matched", addPath: true},
@@ -99,7 +98,6 @@ func topologySignalMappings(matchedSignals *RouterMatchedSignals) []topologySign
 		{signalType: "pii", names: matchedSignals.PII, reason: "PII signal matched", addPath: true},
 		{signalType: "kb", names: matchedSignals.KB, reason: "Knowledge base signal matched", addPath: true},
 		{signalType: "conversation", names: matchedSignals.Conversation, reason: "Conversation structure signal matched", addPath: true},
-		{signalType: "event", names: matchedSignals.Event, reason: "Event signal matched", addPath: true},
 		{signalType: "projection", names: matchedSignals.Projection, reason: "Projection mapping matched", addPath: true},
 	}
 }

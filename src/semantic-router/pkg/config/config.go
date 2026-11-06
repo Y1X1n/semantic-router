@@ -30,7 +30,6 @@ const (
 	SignalTypeUserFeedback  = "user_feedback"
 	SignalTypeLanguage      = "language"
 	SignalTypeContext       = "context"
-	SignalTypeStructure     = "structure"
 	SignalTypeComplexity    = "complexity"
 	SignalTypeModality      = "modality"
 	SignalTypeAuthz         = "authz"
@@ -38,7 +37,6 @@ const (
 	SignalTypeHallucination = "hallucination"
 	SignalTypePII           = "pii"
 	SignalTypeConversation  = "conversation"
-	SignalTypeEvent         = "event"
 	SignalTypeProjection    = "projection"
 )
 

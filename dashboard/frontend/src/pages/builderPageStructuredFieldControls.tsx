@@ -12,7 +12,6 @@ import {
   normalizeStructuredObject,
   normalizeStructuredObjectList,
   normalizeStructuredStringList,
-  normalizeStructuredStringMatrix,
   removeStructuredObjectListItem,
   requiredStructuredFieldErrors,
   structuredItemLabel,
@@ -250,61 +249,6 @@ function RecursiveObjectListField({
       >
         <span aria-hidden="true">+</span>
         {schema.addLabel || 'Add item'}
-      </button>
-    </FieldShell>
-  )
-}
-
-function StringMatrixField({
-  schema,
-  value,
-  onChange,
-}: Omit<StructuredFieldEditorProps, 'renderField'>) {
-  const rows = normalizeStructuredStringMatrix(value)
-  return (
-    <FieldShell schema={schema}>
-      <div className={styles.structuredList}>
-        {rows.map((row, index) => (
-          <section key={index} className={styles.structuredCard}>
-            <div className={styles.structuredCardHeader}>
-              <div>
-                <span className={styles.structuredIndex}>{String(index + 1).padStart(2, '0')}</span>
-                <h4>Sequence {index + 1}</h4>
-              </div>
-              <button
-                type="button"
-                className={styles.structuredRemoveButton}
-                onClick={() => onChange(rows.filter((_, rowIndex) => rowIndex !== index))}
-              >
-                Remove
-              </button>
-            </div>
-            {row.length < 2 ? (
-              <p className={styles.structuredInlineError}>Add at least two markers.</p>
-            ) : null}
-            <StringListEditor
-              value={row}
-              onChange={(nextRow) =>
-                onChange(rows.map((current, rowIndex) => (rowIndex === index ? nextRow : current)))
-              }
-              addLabel="Add marker"
-              emptyLabel="No markers configured."
-              itemLabel="Marker"
-              placeholder="Sequence marker"
-            />
-          </section>
-        ))}
-      </div>
-      {rows.length === 0 ? (
-        <p className={styles.structuredEmpty}>{schema.emptyLabel || 'No sequences configured.'}</p>
-      ) : null}
-      <button
-        type="button"
-        className={styles.structuredAddButton}
-        onClick={() => onChange([...rows, ['', '']])}
-      >
-        <span aria-hidden="true">+</span>
-        {schema.addLabel || 'Add sequence'}
       </button>
     </FieldShell>
   )
@@ -549,9 +493,6 @@ export function StructuredFieldEditor({
         renderField={renderField}
       />
     )
-  }
-  if (schema.type === 'string[][]') {
-    return <StringMatrixField schema={schema} value={value} onChange={onChange} />
   }
   if (schema.type === 'rule') {
     return <RuleField schema={schema} value={value} onChange={onChange} />
