@@ -100,7 +100,6 @@ type RouterConfig struct {
 	// RoutingScope is populated only on immutable recipe views.
 	RoutingScope  RecipeName `yaml:"-"`
 	BackendModels `yaml:",inline"`
-	ToolSelection `yaml:",inline"`
 
 	Authz         AuthzConfig         `yaml:"authz,omitempty"`
 	RateLimit     RateLimitConfig     `yaml:"ratelimit,omitempty"`
@@ -176,10 +175,6 @@ type RateLimitMatch struct {
 	User  string `yaml:"user,omitempty"`
 	Group string `yaml:"group,omitempty"`
 	Model string `yaml:"model,omitempty"`
-}
-
-type ToolSelection struct {
-	Tools ToolsConfig `yaml:"tools"`
 }
 
 type Listener struct {

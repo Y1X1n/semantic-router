@@ -14,10 +14,8 @@ import (
 	"github.com/vllm-project/semantic-router/src/semantic-router/pkg/cache"
 	"github.com/vllm-project/semantic-router/src/semantic-router/pkg/classification"
 	"github.com/vllm-project/semantic-router/src/semantic-router/pkg/config"
-	"github.com/vllm-project/semantic-router/src/semantic-router/pkg/embedding"
 	"github.com/vllm-project/semantic-router/src/semantic-router/pkg/fallback"
 	"github.com/vllm-project/semantic-router/src/semantic-router/pkg/llmprotocol"
-	"github.com/vllm-project/semantic-router/src/semantic-router/pkg/tools"
 )
 
 func testNeutralRequest(model, text string) *llmprotocol.Request {
@@ -63,19 +61,9 @@ var extprocTestModelWeightCandidates = []string{
 
 // CreateTestRouter creates a properly initialized router for testing.
 func CreateTestRouter(cfg *config.RouterConfig) (*OpenAIRouter, error) {
-	return createTestRouterWithToolsProvider(cfg, nil)
-}
-
-func createTestRouterWithToolsProvider(cfg *config.RouterConfig, provider embedding.Provider) (*OpenAIRouter, error) {
 	classifierCfg := cloneRouterConfigForTest(cfg)
 	semanticCache, err := newTestSemanticCache(classifierCfg)
 	if err != nil {
-		return nil, err
-	}
-
-	toolsDatabase, err := newTestToolsDatabase(classifierCfg, provider)
-	if err != nil {
-		_ = semanticCache.Close()
 		return nil, err
 	}
 
@@ -94,7 +82,6 @@ func createTestRouterWithToolsProvider(cfg *config.RouterConfig, provider embedd
 		CategoryDescriptions: cfg.GetCategoryDescriptions(),
 		Classifier:           classifier,
 		Cache:                semanticCache,
-		ToolsDatabase:        toolsDatabase,
 		ResponseAPIFilter:    newTestResponseAPIFilter(cfg),
 		CredentialResolver:   newTestCredentialResolver(cfg),
 		FallbackOrchestrator: orchestrator,
@@ -119,29 +106,6 @@ func newTestSemanticCache(cfg *config.RouterConfig) (cache.CacheBackend, error) 
 		EvictionPolicy:      cache.EvictionPolicyType(cfg.EvictionPolicy),
 		EmbeddingModel:      cfg.EmbeddingModel,
 	})
-}
-
-func newTestToolsDatabase(cfg *config.RouterConfig, provider embedding.Provider) (*tools.ToolsDatabase, error) {
-	toolCfg := cfg.Tools
-	toolsSimilarityThreshold := float32(0.2)
-	if toolCfg.SimilarityThreshold != nil {
-		toolsSimilarityThreshold = *toolCfg.SimilarityThreshold
-	}
-
-	toolsDatabase := tools.NewToolsDatabase(tools.ToolsDatabaseOptions{
-		SimilarityThreshold: toolsSimilarityThreshold,
-		Enabled:             toolCfg.Enabled,
-		ModelType:           cfg.EmbeddingConfig.ModelType,
-		TargetDimension:     cfg.EmbeddingConfig.TargetDimension,
-		Provider:            provider,
-	})
-	if !toolCfg.Enabled || toolCfg.ToolsDBPath == "" {
-		return toolsDatabase, nil
-	}
-	if err := toolsDatabase.LoadToolsFromFile(toolCfg.ToolsDBPath); err != nil {
-		return nil, fmt.Errorf("failed to load tools database: %w", err)
-	}
-	return toolsDatabase, nil
 }
 
 func newTestResponseAPIFilter(cfg *config.RouterConfig) *ResponseAPIFilter {

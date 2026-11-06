@@ -45,26 +45,6 @@ var (
 	buildReloadRouter               = buildOpenAIRouterFromConfig
 	buildReloadRouterSharingSignals = buildOpenAIRouterSharingSignals
 	replaceReloadConfig             = config.Replace
-
-	warmupReloadRouter = func(router *OpenAIRouter) error {
-		if router == nil {
-			return nil
-		}
-		state := router.embeddingRuntimeState()
-		_, err := modelruntime.WarmupRouter(context.Background(), []modelruntime.RouterWarmupTask{
-			{
-				Name:       "tools_database",
-				Ready:      state.ToolsReady,
-				SkipReason: "embedding_runtime_not_ready_for_tools",
-				Load:       router.LoadToolsDatabase,
-			},
-		}, modelruntime.WarmupRouterOptions{
-			Component:      "extproc",
-			MaxParallelism: 2,
-			OnEvent:        logReloadRuntimeLifecycleEvent,
-		})
-		return err
-	}
 )
 
 // Server represents a gRPC server for the Envoy ExtProc
@@ -149,32 +129,6 @@ func NewServer(
 // GetRouter returns the current router instance
 func (s *Server) GetRouter() *OpenAIRouter {
 	return s.service.GetRouter()
-}
-
-// WarmupRouter loads generation-owned runtime data before serving requests.
-func (s *Server) WarmupRouter(
-	ctx context.Context,
-	options modelruntime.WarmupRouterOptions,
-) error {
-	if s == nil || s.service == nil {
-		return nil
-	}
-	generation := s.service.current.Load()
-	if generation == nil || generation.router == nil {
-		return nil
-	}
-	state := generation.router.embeddingRuntimeState()
-	_, err := modelruntime.WarmupRouter(ctx, []modelruntime.RouterWarmupTask{
-		{
-			Name:       "tools_database",
-			Ready:      state.ToolsReady,
-			SkipReason: "embedding_runtime_not_ready_for_tools",
-			Load: func() error {
-				return generation.withLease(generation.router.LoadToolsDatabase)
-			},
-		},
-	}, options)
-	return err
 }
 
 // Start serves requests until Stop is called or the gRPC server fails.
@@ -878,6 +832,5 @@ func (s *Server) EmbeddingRuntimeState() modelruntime.EmbeddingRuntimeState {
 func (r *OpenAIRouter) embeddingRuntimeState() modelruntime.EmbeddingRuntimeState {
 	state := modelruntime.EmbeddingState(r.Config, r.Embeddings)
 	state.AnyReady = state.AnyReady || r.serviceEmbeddings.Ready() || r.cacheEmbeddings.Ready() || r.RecipeClassifiers.HasAnyPreparedEmbeddings()
-	state.ToolsReady = r.ToolsDatabase != nil && r.ToolsDatabase.IsEnabled() && r.serviceEmbeddings.Has("")
 	return state
 }
