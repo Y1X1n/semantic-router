@@ -51,21 +51,22 @@ recipes:
           rules: {}
           modelRefs: [{model: kai}, {model: strong}, {model: reviewer}]
           algorithm:
-            type: cascade
+            type: escalate
             budget: {deadline: 3s, max_calls: 4}
-            quality:
-              type: uncalibrated
-              acceptance:
-                rules:
-                  - {state: document, question: task, question_type: choice, field: confidence, predicate: {gte: 0.8}}
-            stages:
-              - {name: fast, kind: native, model: kai}
-              - {name: strong, kind: native, model: strong, timeout: 1s}
-              - name: review
-                kind: judge
-                model: reviewer
-                enabled: false
-                generation: {max_output_tokens: 256}
+            escalate:
+              quality:
+                type: uncalibrated
+                accept:
+                  native:
+                    - {state: document, question: task, question_type: choice, field: confidence, gte: 0.8}
+              stages:
+                - {name: fast, model: kai}
+                - {name: strong, model: strong, timeout: 1s}
+                - name: review
+                  kind: judge
+                  model: reviewer
+                  enabled: false
+                  generation: {max_output_tokens: 256}
 `
 
 func TestCanonicalNativeRoutingRoundTrip(t *testing.T) {
@@ -117,14 +118,14 @@ func TestCanonicalNativeRoutingRejectsAmbiguousContracts(t *testing.T) {
 		{"zero budget", "max_calls: 4", "max_calls: 0", "max_calls must be positive"},
 		{"infinite deadline", "deadline: 3s", "deadline: 0s", "positive duration"},
 		{"unknown stage model", "model: strong, timeout", "model: absent, timeout", "undeclared modelRef"},
-		{"duplicate stage", "name: strong, kind", "name: fast, kind", "distinct and non-empty"},
-		{"wrong role", "name: strong, kind: native", "name: strong, kind: judge", "generation.max_output_tokens"},
-		{"wrong native protocol", "name: strong, kind: native, model: strong", "name: strong, kind: native, model: reviewer", "requires api_format: systemone"},
+		{"duplicate stage", "name: strong, model: strong", "name: fast, model: strong", "distinct and non-empty"},
+		{"wrong role", "name: strong, model: strong", "name: strong, kind: judge, model: strong", "generation.max_output_tokens"},
+		{"wrong native protocol", "name: strong, model: strong", "name: strong, model: reviewer", "requires api_format: systemone"},
 		{"unsupported fallback", "kind: judge", "kind: typed_fallback", "separate response contract"},
 		{"missing LLM bound", "generation: {max_output_tokens: 256}", "generation: {max_output_tokens: 0}", "generation.max_output_tokens"},
 		{"raw score", "field: confidence", "field: value", "score value is not confidence"},
 		{"unsupported native type", "question_type: choice", "question_type: span", "question_type must be"},
-		{"native Chat recipe", "api: systemone", "api: chat", "native algorithms require"},
+		{"native Chat recipe", "api: systemone", "api: chat", "require an isolated native recipe"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -155,7 +156,7 @@ func TestNativeRuntimeDemandRequiresPublicationAndEnabledStage(t *testing.T) {
 	cfg.Listeners[0].SystemOne = &ListenerSystemOne{Models: []string{DefaultEntrypointModel}}
 	recipe := findRecipe(cfg.Recipes, "native-decisions")
 	enabled := false
-	recipe.Profile.Decisions[0].Algorithm.Stages[0].Enabled = &enabled
+	recipe.Profile.Decisions[0].Algorithm.Escalate.Stages[0].Enabled = &enabled
 	if used := ModelRuntimeDeploymentsInUse(cfg); len(used) != 0 {
 		t.Fatalf("disabled native action started models: %v", used)
 	}

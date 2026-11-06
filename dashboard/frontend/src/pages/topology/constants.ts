@@ -127,22 +127,14 @@ export const PLUGIN_COLORS = Object.fromEntries(
 
 // ============== Algorithm Icons ==============
 const ALGORITHM_ICON_OVERRIDES: Partial<Record<AlgorithmType, string>> = {
-  confidence: 'CF',
+  escalate: 'ES',
   concurrent: 'CC',
   sequential: 'SEQ',
   ratings: 'RT',
   static: 'ST',
-  router_dc: 'RDC',
-  automix: 'AM',
-  hybrid: 'HY',
   remom: 'RM',
   fusion: 'FU',
   workflows: 'FL',
-  latency_aware: 'LAT',
-  knn: 'KNN',
-  kmeans: 'KM',
-  svm: 'SVM',
-  mlp: 'MLP',
   multi_factor: 'MF',
 }
 
@@ -157,22 +149,14 @@ export const ALGORITHM_ICONS = Object.fromEntries(
 const ALGORITHM_COLOR_OVERRIDES: Partial<
   Record<AlgorithmType, { background: string; border: string }>
 > = {
-  confidence: { background: '#8f949c', border: '#696d74' }, // Graphite Alloy
+  escalate: { background: '#8f949c', border: '#696d74' }, // Graphite Alloy
   concurrent: { background: '#5a6c7d', border: '#3d4a59' }, // Blue Gray
   sequential: { background: '#4a5568', border: '#2d3748' }, // Dark Gray
   ratings: { background: '#c9cbd0', border: '#8f949c' }, // Light Alloy
   static: { background: '#606c7a', border: '#3d4a59' }, // Slate Gray
-  router_dc: { background: '#556b7d', border: '#3d4a59' }, // Cool Gray
   remom: { background: '#8f949c', border: '#696d74' }, // Graphite Alloy (same as plugins)
   fusion: { background: '#60784f', border: '#455a36' }, // Muted Alloy
   workflows: { background: '#4f6f78', border: '#38545c' }, // Flow Teal
-  automix: { background: '#5d6d7e', border: '#3d4a59' }, // Steel Gray
-  hybrid: { background: '#4a5568', border: '#2d3748' }, // Dark Gray
-  latency_aware: { background: '#5a6c7d', border: '#3d4a59' }, // Blue Gray
-  knn: { background: '#687887', border: '#4b5968' },
-  kmeans: { background: '#596b5d', border: '#3f5144' },
-  svm: { background: '#6d687a', border: '#504a5c' },
-  mlp: { background: '#586d7a', border: '#40515d' },
   multi_factor: { background: '#4e6f63', border: '#38534a' },
 }
 
