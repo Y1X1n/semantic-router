@@ -150,8 +150,6 @@ export default function ConfigPageProjectionsSection({
           ...(score.inputs || []).flatMap((input) => [
             input.type,
             input.name,
-            input.kb,
-            input.metric,
             input.value_source || '',
           ]),
         ]

@@ -127,33 +127,18 @@ func (c *Compiler) validateSoftmaxDomainProjectionPartition(
 		if signal == nil || signal.SignalType != "domain" {
 			continue
 		}
-		mmluCategories := getMMLUCategories(signal)
-		if len(mmluCategories) == 0 {
-			if config.IsSupportedRoutingDomainName(signal.Name) {
+		for _, label := range domainLabels(signal) {
+			if config.IsSupportedRoutingDomainName(label) {
 				continue
 			}
 			c.addError(
 				partition.Pos,
-				"PROJECTION partition %q member %q must use a supported routing domain name (%s) or declare mmlu_categories explicitly%s",
+				"PROJECTION partition %q member %q matches %q, which is not a domain (supported: %s)%s",
 				partition.Name,
 				member,
+				label,
 				strings.Join(config.SupportedRoutingDomainNames(), ", "),
-				compileDomainSuggestionSuffix(member),
-			)
-			continue
-		}
-		for _, value := range mmluCategories {
-			if config.IsSupportedRoutingDomainName(value) {
-				continue
-			}
-			c.addError(
-				partition.Pos,
-				"PROJECTION partition %q member %q has unsupported mmlu_categories value %q (supported: %s)%s",
-				partition.Name,
-				member,
-				value,
-				strings.Join(config.SupportedRoutingDomainNames(), ", "),
-				compileDomainSuggestionSuffix(value),
+				compileDomainSuggestionSuffix(label),
 			)
 		}
 	}

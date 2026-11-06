@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/vllm-project/semantic-router/e2e/pkg/framework"
+	"github.com/vllm-project/semantic-router/e2e/pkg/helpers"
 	gatewaystack "github.com/vllm-project/semantic-router/e2e/pkg/stacks/gateway"
 	_ "github.com/vllm-project/semantic-router/e2e/testcases"
 )
@@ -17,6 +18,8 @@ const valuesFile = "e2e/profiles/routing-strategies/values.yaml"
 var resourceManifests = []string{
 	"deploy/kubernetes/routing-strategies/aigw-resources/base-model.yaml",
 	"deploy/kubernetes/routing-strategies/aigw-resources/gwapi-resources.yaml",
+	// Serves the System One fixture the jailbreak and PII rules ask.
+	"deploy/kubernetes/hallucination/provider-mocker.yaml",
 }
 
 // Profile implements the Routing Strategies test profile.
@@ -34,6 +37,7 @@ func NewProfile() *Profile {
 			Name:                     "routing-strategies",
 			SemanticRouterValuesFile: valuesFile,
 			ResourceManifests:        resourceManifests,
+			WaitDeployments:          []helpers.DeploymentRef{{Namespace: "default", Name: "provider-mocker"}},
 		}),
 	}
 }

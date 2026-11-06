@@ -1292,8 +1292,6 @@ export interface ProjectionPartition {
 export interface ProjectionScoreInput {
   type: string
   name?: string
-  kb?: string
-  metric?: string
   weight: number
   value_source?: string
   match?: number

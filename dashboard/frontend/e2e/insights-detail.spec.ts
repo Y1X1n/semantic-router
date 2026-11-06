@@ -237,14 +237,14 @@ test('usage leads with compact metrics while scores and independent status cards
         target: 'response-check-unavailable',
         verdict: 'unavailable',
         reason: 'Detector unavailable',
-        metadata: { direction: 'response', signal: 'hallucination', score_available: 'false' },
+        metadata: { stage: 'response', signal: 'hallucination', score_available: 'false' },
       },
       {
         source: 'router',
         target: 'response-check-not-applicable',
         verdict: 'not_applicable',
         reason: 'No applicable context',
-        metadata: { direction: 'response', signal: 'hallucination', score_available: 'false' },
+        metadata: { stage: 'response', signal: 'hallucination', score_available: 'false' },
       },
     ],
   })

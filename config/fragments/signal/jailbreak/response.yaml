@@ -7,6 +7,7 @@ routing:
   signals:
     jailbreak:
       - name: unsafe_completion
-        direction: response
-        threshold: 0.90
         description: Detect jailbreak content in the model's own output.
+        predicate:
+          gte: 0.90
+        stage: response

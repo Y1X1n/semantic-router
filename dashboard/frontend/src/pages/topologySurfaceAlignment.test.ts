@@ -41,13 +41,6 @@ describe('topology v0.3 surface alignment', () => {
               predicate: { equals: 'research' },
             },
           ],
-          classifiers: [
-            {
-              name: 'risk',
-              type: 'local',
-              labels: ['SAFE', 'RISKY'],
-            },
-          ],
           input_modality: [{ name: 'vision', modality: 'image' }],
         },
         decisions: [
@@ -74,7 +67,7 @@ describe('topology v0.3 surface alignment', () => {
     const topology = parseConfigToTopology(config)
 
     expect(topology.signals.map((signal) => signal.type)).toEqual(
-      expect.arrayContaining(['conversation', 'event', 'metadata', 'classifier', 'input_modality']),
+      expect.arrayContaining(['conversation', 'event', 'metadata', 'input_modality']),
     )
     expect(topology.decisions[0].algorithm?.type).toBe('multi_factor')
     expect(topology.decisions[0].algorithm?.multi_factor).toEqual({ latency_percentile: 95 })

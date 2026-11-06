@@ -142,15 +142,14 @@ func StartWithOptions(opts InitOptions) (*Server, error) {
 
 	// Create server instance
 	apiServer := &ClassificationAPIServer{
-		classificationSvc:     liveClassificationSvc,
-		config:                cfg,
-		runtimeConfig:         newLiveRuntimeConfig(cfg, buildConfigResolver(opts.RuntimeRegistry), buildConfigUpdater(opts.RuntimeRegistry, liveClassificationSvc)),
-		runtimeRegistry:       opts.RuntimeRegistry,
-		configPath:            opts.ConfigPath,
-		gatewayMode:           opts.GatewayMode,
-		memoryStore:           memoryStore,
-		knowledgeBaseMapCache: newKnowledgeBaseMapCache(),
-		startupStatusConfig:   &cfg.StartupStatus,
+		classificationSvc:   liveClassificationSvc,
+		config:              cfg,
+		runtimeConfig:       newLiveRuntimeConfig(cfg, buildConfigResolver(opts.RuntimeRegistry), buildConfigUpdater(opts.RuntimeRegistry, liveClassificationSvc)),
+		runtimeRegistry:     opts.RuntimeRegistry,
+		configPath:          opts.ConfigPath,
+		gatewayMode:         opts.GatewayMode,
+		memoryStore:         memoryStore,
+		startupStatusConfig: &cfg.StartupStatus,
 	}
 
 	opts.RuntimeRegistry.OnConfigAttempt(apiServer.recordConfigAudit)

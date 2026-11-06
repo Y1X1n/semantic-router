@@ -20,7 +20,6 @@ func TestNativeConsumerLabelOrder(t *testing.T) {
 		{name: "mixed semantic and unnamed", actual: []string{"chat", "LABEL_1"}, declared: []string{"chat", "billing"}, invalid: true},
 		{name: "PII wrong entity", actual: []string{"O", "B-SECRET"}, declared: []string{"O", "B-PERSON"}, invalid: true},
 		{name: "PII wrong outside", actual: []string{"O", "B-SECRET"}, declared: []string{"B-SECRET", "O"}, invalid: true},
-		{name: "existing feedback alias", actual: []string{"SAT", "WRONG_ANSWER"}, declared: []string{"satisfied", "wrong_answer"}, normalize: normalizeFeedbackLabel},
 		{name: "no implicit generic alias", actual: []string{"SAT", "WRONG_ANSWER"}, declared: []string{"satisfied", "wrong_answer"}, invalid: true},
 		{name: "missing index", actual: []string{"chat", "billing"}, declared: []string{"chat", ""}, invalid: true},
 		{name: "duplicate declaration", actual: []string{"LABEL_0", "LABEL_1"}, declared: []string{"chat", "chat"}, invalid: true},

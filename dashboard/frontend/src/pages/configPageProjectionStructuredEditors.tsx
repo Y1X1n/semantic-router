@@ -35,21 +35,6 @@ const inputFields: ObjectEditorField<ProjectionScoreInput>[] = [
     label: 'Signal or projection name',
     placeholder: 'technical_support',
     required: true,
-    shouldHide: (item) => item.type === 'kb_metric',
-  },
-  {
-    key: 'kb',
-    label: 'Knowledge base',
-    placeholder: 'privacy_kb',
-    required: true,
-    shouldHide: (item) => item.type !== 'kb_metric',
-  },
-  {
-    key: 'metric',
-    label: 'Knowledge-base metric',
-    placeholder: 'private_vs_public',
-    required: true,
-    shouldHide: (item) => item.type !== 'kb_metric',
   },
   { key: 'weight', label: 'Weight', type: 'number', step: 0.01, required: true },
   {
@@ -119,7 +104,7 @@ export function ProjectionInputsEditor({
       createItem={() => ({ type: 'embedding', name: '', weight: 1, value_source: 'binary' })}
       addLabel="Add input"
       emptyLabel="No weighted inputs configured."
-      itemLabel={(item, index) => item.name?.trim() || item.kb?.trim() || `Input ${index + 1}`}
+      itemLabel={(item, index) => item.name?.trim() || `Input ${index + 1}`}
       itemDescription={(item) =>
         `${item.type || 'Type required'} · weight ${Number.isFinite(item.weight) ? item.weight : 'required'}`
       }
