@@ -1478,21 +1478,9 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "ContextCompressionBudgetConfig": {
+    "ContextBudgetConfig": {
       "properties": {
-        "trigger_tokens": {
-          "oneOf": [
-            {
-              "type": "integer",
-              "minimum": 0
-            },
-            {
-              "type": "string",
-              "const": "auto"
-            }
-          ]
-        },
-        "target_tokens": {
+        "max_tokens": {
           "oneOf": [
             {
               "type": "integer",
@@ -1520,31 +1508,20 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "ContextCompressionCurrentUserConfig": {
+    "ContextCompressConfig": {
       "properties": {
         "mode": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "ContextCompressionPluginConfig": {
-      "properties": {
-        "enabled": {
-          "type": "boolean"
-        },
-        "mode": {
-          "type": "string"
-        },
-        "budget": {
-          "$ref": "#/$defs/ContextCompressionBudgetConfig"
+          "type": "string",
+          "enum": [
+            "auto",
+            "always"
+          ]
         },
         "targets": {
           "$ref": "#/$defs/ContextCompressionTargetsConfig"
         },
-        "scoring": {
-          "$ref": "#/$defs/ContextCompressionScoringConfig"
+        "match": {
+          "$ref": "#/$defs/MatchConfig"
         },
         "recovery": {
           "$ref": "#/$defs/ContextCompressionRecoveryConfig"
@@ -1553,6 +1530,19 @@
           "$ref": "#/$defs/ContextCompressionRequestControlsConfig"
         },
         "failure_mode": {
+          "type": "string",
+          "enum": [
+            "fail_open",
+            "fail_closed"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ContextCompressionCurrentUserConfig": {
+      "properties": {
+        "mode": {
           "type": "string"
         }
       },
@@ -1604,18 +1594,6 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "ContextCompressionScoringConfig": {
-      "properties": {
-        "method": {
-          "type": "string"
-        },
-        "embedding_model_ref": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
     "ContextCompressionTargetConfig": {
       "properties": {
         "mode": {
@@ -1652,6 +1630,52 @@
       "additionalProperties": false,
       "type": "object"
     },
+    "ContextInjectionConfig": {
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "tool_role",
+            "system_prompt"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ContextMemoryStoreConfig": {
+      "properties": {
+        "auto": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "ContextPluginConfig": {
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/$defs/ContextSource"
+          },
+          "type": "array"
+        },
+        "compress": {
+          "$ref": "#/$defs/ContextCompressConfig"
+        },
+        "budget": {
+          "$ref": "#/$defs/ContextBudgetConfig"
+        },
+        "injection": {
+          "$ref": "#/$defs/ContextInjectionConfig"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "ContextRule": {
       "properties": {
         "name": {
@@ -1669,6 +1693,74 @@
       },
       "additionalProperties": false,
       "type": "object"
+    },
+    "ContextSource": {
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "rag",
+            "memory"
+          ]
+        },
+        "match": {
+          "$ref": "#/$defs/MatchConfig"
+        },
+        "backend": {
+          "type": "string",
+          "enum": [
+            "vectorstore",
+            "milvus",
+            "qdrant",
+            "external_api",
+            "mcp",
+            "openai",
+            "hybrid"
+          ]
+        },
+        "backend_config": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "max_context_length": {
+          "type": "integer"
+        },
+        "on_failure": {
+          "type": "string",
+          "enum": [
+            "skip",
+            "block",
+            "warn"
+          ]
+        },
+        "cache_results": {
+          "type": "boolean"
+        },
+        "cache_ttl_seconds": {
+          "type": "integer"
+        },
+        "store": {
+          "$ref": "#/$defs/ContextMemoryStoreConfig"
+        },
+        "hybrid_search": {
+          "type": "boolean"
+        },
+        "hybrid_mode": {
+          "type": "string",
+          "enum": [
+            "weighted",
+            "rrf"
+          ]
+        },
+        "reflection": {
+          "$ref": "#/$defs/MemoryReflectionConfig"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "type"
+      ]
     },
     "ConversationFeature": {
       "properties": {
@@ -1924,7 +2016,7 @@
           "if": {
             "properties": {
               "type": {
-                "const": "memory"
+                "const": "context"
               }
             },
             "required": [
@@ -1934,7 +2026,7 @@
           "then": {
             "properties": {
               "configuration": {
-                "$ref": "#/$defs/MemoryPluginConfig"
+                "$ref": "#/$defs/ContextPluginConfig"
               }
             }
           }
@@ -2019,25 +2111,6 @@
           "if": {
             "properties": {
               "type": {
-                "const": "rag"
-              }
-            },
-            "required": [
-              "type"
-            ]
-          },
-          "then": {
-            "properties": {
-              "configuration": {
-                "$ref": "#/$defs/RAGPluginConfig"
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "type": {
                 "const": "fast_response"
               }
             },
@@ -2087,25 +2160,6 @@
             "properties": {
               "configuration": {
                 "$ref": "#/$defs/RequestParamsPluginConfig"
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "type": {
-                "const": "context_compression"
-              }
-            },
-            "required": [
-              "type"
-            ]
-          },
-          "then": {
-            "properties": {
-              "configuration": {
-                "$ref": "#/$defs/ContextCompressionPluginConfig"
               }
             }
           }
@@ -2172,13 +2226,11 @@
         "type": {
           "type": "string",
           "enum": [
-            "context_compression",
+            "context",
             "fast_response",
             "header_mutation",
             "masking",
-            "memory",
             "prompt_cache",
-            "rag",
             "request_params",
             "response_cache",
             "response_guard",
@@ -3677,33 +3729,6 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "MemoryPluginConfig": {
-      "properties": {
-        "enabled": {
-          "type": "boolean"
-        },
-        "retrieval_limit": {
-          "type": "integer"
-        },
-        "similarity_threshold": {
-          "type": "number"
-        },
-        "auto_store": {
-          "type": "boolean"
-        },
-        "hybrid_search": {
-          "type": "boolean"
-        },
-        "hybrid_mode": {
-          "type": "string"
-        },
-        "reflection": {
-          "$ref": "#/$defs/MemoryReflectionConfig"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
     "MemoryQdrantConfig": {
       "properties": {
         "host": {
@@ -5155,67 +5180,6 @@
         },
         "min_score": {
           "type": "number"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "RAGPluginConfig": {
-      "properties": {
-        "enabled": {
-          "type": "boolean"
-        },
-        "backend": {
-          "type": "string"
-        },
-        "similarity_threshold": {
-          "type": "number"
-        },
-        "top_k": {
-          "type": "integer"
-        },
-        "max_context_length": {
-          "type": "integer"
-        },
-        "injection_mode": {
-          "type": "string"
-        },
-        "rerank": {
-          "$ref": "#/$defs/RAGRerankConfig"
-        },
-        "backend_config": {
-          "additionalProperties": true,
-          "type": "object"
-        },
-        "on_failure": {
-          "type": "string"
-        },
-        "cache_results": {
-          "type": "boolean"
-        },
-        "cache_ttl_seconds": {
-          "type": "integer"
-        },
-        "min_confidence_threshold": {
-          "type": "number"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "RAGRerankConfig": {
-      "properties": {
-        "top_k": {
-          "type": "integer"
-        },
-        "deployment": {
-          "type": "string"
-        },
-        "layer": {
-          "type": "integer"
-        },
-        "dimension": {
-          "type": "integer"
         }
       },
       "additionalProperties": false,
@@ -7858,10 +7822,10 @@
         "schema_ref": "#/$defs/ResponseCachePluginConfig"
       },
       {
-        "type": "memory",
-        "display_name": "Memory",
-        "description": "Retrieve and store persistent conversation memory.",
-        "schema_ref": "#/$defs/MemoryPluginConfig"
+        "type": "context",
+        "display_name": "Context",
+        "description": "Retrieve documents and memories, compress the request within a budget and inject the context.",
+        "schema_ref": "#/$defs/ContextPluginConfig"
       },
       {
         "type": "system_prompt",
@@ -7888,12 +7852,6 @@
         "schema_ref": "#/$defs/RouterReplayPluginConfig"
       },
       {
-        "type": "rag",
-        "display_name": "RAG",
-        "description": "Retrieve external context and inject it into the request.",
-        "schema_ref": "#/$defs/RAGPluginConfig"
-      },
-      {
         "type": "fast_response",
         "display_name": "Fast Response",
         "description": "Return a fixed response without calling an upstream model.",
@@ -7910,12 +7868,6 @@
         "display_name": "Request Parameters",
         "description": "Constrain or remove provider request parameters.",
         "schema_ref": "#/$defs/RequestParamsPluginConfig"
-      },
-      {
-        "type": "context_compression",
-        "display_name": "Context Compression",
-        "description": "Compress selected context before provider dispatch.",
-        "schema_ref": "#/$defs/ContextCompressionPluginConfig"
       },
       {
         "type": "prompt_cache",

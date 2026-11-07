@@ -3441,35 +3441,6 @@
         "x-vllm-sr-schema-status": "undocumented"
       }
     },
-    "/api/router/api/v1/diagnostics/models/rerank": {
-      "post": {
-        "operationId": "postApiRouterApiV1DiagnosticsModelsRerank",
-        "summary": "POST /api/router/api/v1/diagnostics/models/rerank",
-        "tags": [
-          "router"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          },
-          {
-            "sessionCookie": []
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": "Response body is not yet described by the Dashboard contract."
-          }
-        },
-        "x-vllm-sr-permission": "evaluation.run",
-        "x-vllm-sr-sensitivity": "sensitive",
-        "x-vllm-sr-resource-owner": "evaluation",
-        "x-vllm-sr-audit-mode": "none",
-        "x-vllm-sr-csrf": true,
-        "x-vllm-sr-max-body-bytes": 16777216,
-        "x-vllm-sr-schema-status": "undocumented"
-      }
-    },
     "/api/router/api/v1/diagnostics/models/systemone": {
       "get": {
         "operationId": "getApiRouterApiV1DiagnosticsModelsSystemone",
@@ -3812,10 +3783,10 @@
         "x-vllm-sr-schema-status": "undocumented"
       }
     },
-    "/api/router/api/v1/observability/plugins/context_compression/stats": {
+    "/api/router/api/v1/observability/plugins/context/compression/stats": {
       "get": {
         "operationId": "getApiRouterApiV1ObservabilityPluginsContextCompressionStats",
-        "summary": "GET /api/router/api/v1/observability/plugins/context_compression/stats",
+        "summary": "GET /api/router/api/v1/observability/plugins/context/compression/stats",
         "tags": [
           "router"
         ],
@@ -3994,10 +3965,10 @@
         "x-vllm-sr-schema-status": "undocumented"
       }
     },
-    "/api/router/api/v1/plugins/context_compression/capabilities": {
+    "/api/router/api/v1/plugins/context/compression/capabilities": {
       "get": {
         "operationId": "getApiRouterApiV1PluginsContextCompressionCapabilities",
-        "summary": "GET /api/router/api/v1/plugins/context_compression/capabilities",
+        "summary": "GET /api/router/api/v1/plugins/context/compression/capabilities",
         "tags": [
           "router"
         ],
@@ -4022,10 +3993,10 @@
         "x-vllm-sr-schema-status": "undocumented"
       }
     },
-    "/api/router/api/v1/plugins/context_compression/health": {
+    "/api/router/api/v1/plugins/context/compression/health": {
       "get": {
         "operationId": "getApiRouterApiV1PluginsContextCompressionHealth",
-        "summary": "GET /api/router/api/v1/plugins/context_compression/health",
+        "summary": "GET /api/router/api/v1/plugins/context/compression/health",
         "tags": [
           "router"
         ],
@@ -4050,10 +4021,10 @@
         "x-vllm-sr-schema-status": "undocumented"
       }
     },
-    "/api/router/api/v1/plugins/context_compression/preview": {
+    "/api/router/api/v1/plugins/context/compression/preview": {
       "post": {
         "operationId": "postApiRouterApiV1PluginsContextCompressionPreview",
-        "summary": "POST /api/router/api/v1/plugins/context_compression/preview",
+        "summary": "POST /api/router/api/v1/plugins/context/compression/preview",
         "tags": [
           "router"
         ],
@@ -4071,6 +4042,38 @@
           }
         },
         "x-vllm-sr-permission": "evaluation.run",
+        "x-vllm-sr-sensitivity": "sensitive",
+        "x-vllm-sr-resource-owner": "evaluation",
+        "x-vllm-sr-audit-mode": "none",
+        "x-vllm-sr-csrf": true,
+        "x-vllm-sr-max-body-bytes": 16777216,
+        "x-vllm-sr-schema-status": "undocumented"
+      }
+    },
+    "/api/router/api/v1/plugins/context/preview": {
+      "post": {
+        "operationId": "postApiRouterApiV1PluginsContextPreview",
+        "summary": "POST /api/router/api/v1/plugins/context/preview",
+        "tags": [
+          "router"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Response body is not yet described by the Dashboard contract."
+          }
+        },
+        "x-vllm-sr-permission": "evaluation.run",
+        "x-vllm-sr-additional-permissions": [
+          "config.read"
+        ],
         "x-vllm-sr-sensitivity": "sensitive",
         "x-vllm-sr-resource-owner": "evaluation",
         "x-vllm-sr-audit-mode": "none",
@@ -4131,38 +4134,6 @@
         "x-vllm-sr-permission": "config.read",
         "x-vllm-sr-sensitivity": "sensitive",
         "x-vllm-sr-resource-owner": "config",
-        "x-vllm-sr-audit-mode": "none",
-        "x-vllm-sr-csrf": true,
-        "x-vllm-sr-max-body-bytes": 16777216,
-        "x-vllm-sr-schema-status": "undocumented"
-      }
-    },
-    "/api/router/api/v1/plugins/rag/preview": {
-      "post": {
-        "operationId": "postApiRouterApiV1PluginsRagPreview",
-        "summary": "POST /api/router/api/v1/plugins/rag/preview",
-        "tags": [
-          "router"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          },
-          {
-            "sessionCookie": []
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": "Response body is not yet described by the Dashboard contract."
-          }
-        },
-        "x-vllm-sr-permission": "evaluation.run",
-        "x-vllm-sr-additional-permissions": [
-          "config.read"
-        ],
-        "x-vllm-sr-sensitivity": "sensitive",
-        "x-vllm-sr-resource-owner": "evaluation",
         "x-vllm-sr-audit-mode": "none",
         "x-vllm-sr-csrf": true,
         "x-vllm-sr-max-body-bytes": 16777216,

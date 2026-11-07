@@ -886,7 +886,7 @@ def test_runtime_migration_is_idempotent_and_quiet_the_second_time():
     assert second == first
     # No value records that a RAG collection was re-embedded, so its reminder repeats.
     assert [note.path for note in notes if not _is_reembed_reminder(note)] == []
-    assert all(note.path.endswith(".configuration.backend") for note in notes)
+    assert all(note.path.endswith(".backend") for note in notes)
 
 
 @pytest.mark.parametrize(
