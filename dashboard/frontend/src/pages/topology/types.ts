@@ -704,7 +704,6 @@ export interface ConfigData {
     }
     stores?: {
       response_cache?: TopologyOptionalCacheConfig
-      semantic_cache?: TopologyOptionalCacheConfig
     }
     model_catalog?: {
       modules?: {

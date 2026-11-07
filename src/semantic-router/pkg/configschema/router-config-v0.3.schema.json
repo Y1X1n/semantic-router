@@ -1878,11 +1878,8 @@
           },
           "type": "array"
         },
-        "emits": {
-          "items": {
-            "$ref": "#/$defs/EmitDirective"
-          },
-          "type": "array"
+        "retention": {
+          "$ref": "#/$defs/DecisionRetention"
         },
         "annotations": {
           "type": "object"
@@ -2187,25 +2184,6 @@
           "if": {
             "properties": {
               "type": {
-                "const": "shadow_dispatch"
-              }
-            },
-            "required": [
-              "type"
-            ]
-          },
-          "then": {
-            "properties": {
-              "configuration": {
-                "$ref": "#/$defs/ShadowDispatchPluginConfig"
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "type": {
                 "const": "masking"
               }
             },
@@ -2235,7 +2213,6 @@
             "response_cache",
             "response_guard",
             "router_replay",
-            "shadow_dispatch",
             "system_prompt",
             "tools"
           ]
@@ -2286,6 +2263,24 @@
         },
         "retry_after_max": {
           "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "DecisionRetention": {
+      "properties": {
+        "drop": {
+          "type": "boolean"
+        },
+        "ttl_turns": {
+          "type": "integer"
+        },
+        "keep_current_model": {
+          "type": "boolean"
+        },
+        "prefer_prefix_retention": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,
@@ -2439,18 +2434,6 @@
         },
         "endpoint": {
           "$ref": "#/$defs/EmbeddingEndpointConfig"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "EmitDirective": {
-      "properties": {
-        "kind": {
-          "type": "string"
-        },
-        "retention": {
-          "$ref": "#/$defs/RetentionDirective"
         }
       },
       "additionalProperties": false,
@@ -5592,6 +5575,9 @@
         "scope": {
           "type": "string"
         },
+        "ttl_seconds": {
+          "type": "integer"
+        },
         "semantic": {
           "$ref": "#/$defs/ResponseCacheSemanticConfig"
         },
@@ -5603,18 +5589,6 @@
         },
         "revision": {
           "$ref": "#/$defs/ResponseCacheRevisionConfig"
-        },
-        "allow_request_controls": {
-          "type": "boolean"
-        },
-        "control_header": {
-          "type": "string"
-        },
-        "similarity_threshold": {
-          "type": "number"
-        },
-        "ttl_seconds": {
-          "type": "integer"
         }
       },
       "additionalProperties": false,
@@ -5661,8 +5635,8 @@
     },
     "ResponseCacheSemanticConfig": {
       "properties": {
-        "similarity_threshold": {
-          "type": "number"
+        "match": {
+          "$ref": "#/$defs/MatchConfig"
         }
       },
       "additionalProperties": false,
@@ -5791,24 +5765,6 @@
           ]
         },
         "details": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "RetentionDirective": {
-      "properties": {
-        "drop": {
-          "type": "boolean"
-        },
-        "ttl_turns": {
-          "type": "integer"
-        },
-        "keep_current_model": {
-          "type": "boolean"
-        },
-        "prefer_prefix_retention": {
           "type": "boolean"
         }
       },
@@ -6164,6 +6120,9 @@
         },
         "max_tool_trace_steps": {
           "type": "integer"
+        },
+        "shadow": {
+          "$ref": "#/$defs/RouterReplayShadowConfig"
         }
       },
       "additionalProperties": false,
@@ -6251,6 +6210,48 @@
         },
         "key_prefix": {
           "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "RouterReplayShadowConfig": {
+      "properties": {
+        "model": {
+          "type": "string"
+        },
+        "sample_rate": {
+          "type": "number"
+        },
+        "max_concurrency": {
+          "type": "integer"
+        },
+        "max_queue_depth": {
+          "type": "integer"
+        },
+        "timeout_seconds": {
+          "type": "integer"
+        },
+        "max_response_bytes": {
+          "type": "integer"
+        },
+        "max_retries": {
+          "type": "integer"
+        },
+        "capture_response_body": {
+          "type": "boolean"
+        },
+        "max_capture_bytes": {
+          "type": "integer"
+        },
+        "tls_skip_verify": {
+          "type": "boolean"
+        },
+        "forward_headers": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         }
       },
       "additionalProperties": false,
@@ -6472,51 +6473,6 @@
         },
         "timeout_ms": {
           "type": "integer"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "ShadowDispatchPluginConfig": {
-      "properties": {
-        "enabled": {
-          "type": "boolean"
-        },
-        "model": {
-          "type": "string"
-        },
-        "sample_rate": {
-          "type": "number"
-        },
-        "max_concurrency": {
-          "type": "integer"
-        },
-        "max_queue_depth": {
-          "type": "integer"
-        },
-        "timeout_seconds": {
-          "type": "integer"
-        },
-        "max_response_bytes": {
-          "type": "integer"
-        },
-        "max_retries": {
-          "type": "integer"
-        },
-        "capture_response_body": {
-          "type": "boolean"
-        },
-        "max_capture_bytes": {
-          "type": "integer"
-        },
-        "tls_skip_verify": {
-          "type": "boolean"
-        },
-        "forward_headers": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
         }
       },
       "additionalProperties": false,
@@ -7848,7 +7804,7 @@
       {
         "type": "router_replay",
         "display_name": "Router Replay",
-        "description": "Capture bounded request and response replay evidence.",
+        "description": "Capture bounded request and response replay evidence, and shadow a sampled copy to a secondary model.",
         "schema_ref": "#/$defs/RouterReplayPluginConfig"
       },
       {
@@ -7874,12 +7830,6 @@
         "display_name": "Prompt Cache",
         "description": "Add bounded Anthropic prompt-cache markers after route selection.",
         "schema_ref": "#/$defs/PromptCachePluginConfig"
-      },
-      {
-        "type": "shadow_dispatch",
-        "display_name": "Shadow Dispatch",
-        "description": "Send a bounded asynchronous copy to a secondary model.",
-        "schema_ref": "#/$defs/ShadowDispatchPluginConfig"
       },
       {
         "type": "masking",
