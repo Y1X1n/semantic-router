@@ -417,7 +417,7 @@ func addSource(configuration, source *yaml.Node) error {
 }
 
 // scopeDecision returns the decision whose plugins are plugins, and the
-// document path of its routing scope.
+// document path of its recipe.
 func scopeDecision(root, plugins *yaml.Node) (*yaml.Node, string) {
 	for _, pattern := range RoutingScopes("decisions[]") {
 		for _, decision := range matchPattern(root, strings.Split(pattern, ".")) {
@@ -429,7 +429,7 @@ func scopeDecision(root, plugins *yaml.Node) (*yaml.Node, string) {
 	return nil, ""
 }
 
-// scopeRuleNames are the names of a routing scope's rules of a signal type.
+// scopeRuleNames are the names of a recipe's rules of a signal type.
 func scopeRuleNames(root *yaml.Node, scope, signalType string) []string {
 	var names []string
 	for _, pattern := range RoutingScopes("signals." + signalType + "[]") {

@@ -230,7 +230,7 @@ func TestCallRouterAPIUsesServerCredential(t *testing.T) {
 
 func TestTopologyPreviewUsesCanonicalTimeout(t *testing.T) {
 	configPath := filepath.Join(t.TempDir(), "config.yaml")
-	require.NoError(t, os.WriteFile(configPath, []byte("version: v0.3\nglobal:\n  services:\n    api:\n      routing_preview:\n        request_timeout_seconds: 600\n"), 0o600))
+	require.NoError(t, os.WriteFile(configPath, []byte("version: v0.5\nglobal:\n  services:\n    api:\n      routing_preview:\n        request_timeout_seconds: 600\n"), 0o600))
 	require.Equal(t, 605*time.Second, topologyPreviewTimeout(configPath))
 }
 

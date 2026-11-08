@@ -9,17 +9,18 @@ import (
 
 // validateSystemOneContracts checks systemone rules, the systemone selector
 // and the model_runtime or systemone deployments they name.
-func validateSystemOneContracts(cfg *RouterConfig) error {
+func validateSystemOneContracts(cfg *RouterConfig) (err error) {
+	defer func() { err = cfg.inRecipe(err) }()
 	seen := make(map[string]struct{}, len(cfg.SystemOneRules))
 	for index, rule := range cfg.SystemOneRules {
 		if err := ValidateSystemOneRuleContract(rule); err != nil {
-			path := fmt.Sprintf("routing.signals.systemone[%d]", index)
+			path := fmt.Sprintf("signals.systemone[%d]", index)
 			if validRuleName(rule.Name) {
-				path = SystemOneRulePath(rule.Name)
+				path = systemOneRulePath(rule.Name)
 			}
 			return fmt.Errorf("%s: %w", path, err)
 		}
-		path := SystemOneRulePath(rule.Name)
+		path := systemOneRulePath(rule.Name)
 		if _, exists := seen[rule.Name]; exists {
 			return fmt.Errorf("%s: duplicate name %q", path, rule.Name)
 		}
@@ -74,9 +75,9 @@ func validateDecisionSystemOneQuestions(cfg *RouterConfig, decision Decision) er
 	return nil
 }
 
-// SystemOneRulePath is where a configuration writes a rule.
-func SystemOneRulePath(name string) string {
-	return "routing.signals.systemone[" + name + "]"
+// systemOneRulePath is where a recipe writes a rule.
+func systemOneRulePath(name string) string {
+	return "signals.systemone[" + name + "]"
 }
 
 func validRuleName(name string) bool {
@@ -225,7 +226,7 @@ func validateSetLabelAnswerKeys(cfg *RouterConfig, rules []SystemOneRule) error 
 		deployment := cfg.SystemOneRuleDeployment(rule)
 		for _, label := range rule.Question.Labels {
 			if other, exists := names[deployment+"\x00"+rule.Name+"."+label.Key]; exists {
-				return fmt.Errorf("%s: the name collides with the answer key of set question %q's label %q on deployment %q; rename one of them", SystemOneRulePath(other), rule.Name, label.Key, deployment)
+				return fmt.Errorf("%s: the name collides with the answer key of set question %q's label %q on deployment %q; rename one of them", systemOneRulePath(other), rule.Name, label.Key, deployment)
 			}
 		}
 	}

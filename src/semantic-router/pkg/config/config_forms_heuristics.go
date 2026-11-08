@@ -92,7 +92,7 @@ var heuristicForms = []ConfigForm{
 	},
 }
 
-// signalReferencePatterns are where a routing scope names a signal rule:
+// signalReferencePatterns are where a recipe names a signal rule:
 // decision conditions and projection inputs.
 var signalReferencePatterns = []string{
 	"decisions[].rules.**",
@@ -100,7 +100,7 @@ var signalReferencePatterns = []string{
 }
 
 // removedReferenceForm is the form of the references to a removed signal
-// type, in every routing scope.
+// type, in every recipe.
 func removedReferenceForm(signalType, becomes string, migrate func(*Migration, FormMatch) error) ConfigForm {
 	var paths []string
 	for _, pattern := range signalReferencePatterns {
@@ -152,7 +152,7 @@ func noteValueReferences(m *Migration, scope *yaml.Node, scopePath, signalType s
 	}
 }
 
-// signalsScope is the routing scope of a match at signals.<type> and its path.
+// signalsScope is the recipe of a match at signals.<type> and its path.
 func signalsScope(at FormMatch) (*yaml.Node, string) {
 	return at.Above(2), strings.TrimSuffix(at.Path, "signals."+at.Key)
 }

@@ -39,7 +39,7 @@ func attachedDecisionModels(t *testing.T, explicit bool) (*classifierModelRuntim
 	t.Helper()
 	source := setQuestionOnTheDecisionModel
 	if explicit {
-		source = strings.Replace(source, "routing:\n", "routing:\n  model_bindings:\n    pii_classifier: {deployment: primary, contract: decision.v1}\n", 1)
+		source = strings.Replace(source, "\n  - name: default\n", "\n  - name: default\n    model_bindings:\n      pii_classifier: {deployment: primary, contract: decision.v1}\n", 1)
 	}
 	cfg, err := config.ParseYAMLBytes([]byte(source))
 	if err != nil {
@@ -102,7 +102,7 @@ func TestAttachedDecisionSpanIsNeverComposedOrSilentlyAccepted(t *testing.T) {
 		t.Fatal(err)
 	}
 	services.card, services.ready = decisionObservation("noul"), true
-	want := `routing.signals.systemone[needs]: span_required: resolves to deployment "primary", which cannot answer span questions`
+	want := `recipes[default].signals.systemone[needs]: span_required: resolves to deployment "primary", which cannot answer span questions`
 	if err := c.prepareSystemOneSignals(); err == nil || !strings.HasPrefix(err.Error(), want) {
 		t.Fatalf("Noul cannot provide locations: %v", err)
 	}

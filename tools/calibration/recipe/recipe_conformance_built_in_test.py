@@ -77,7 +77,7 @@ class BuiltInRecipeConformanceTest(unittest.TestCase):
         decisions = [
             decision
             for recipe in self.config["recipes"]
-            for decision in recipe["routing"]["decisions"]
+            for decision in recipe["decisions"]
         ]
         for decision in decisions:
             minimum = decision.get("algorithm", {}).get("minimum_candidates", 0)
@@ -85,7 +85,7 @@ class BuiltInRecipeConformanceTest(unittest.TestCase):
 
     def test_policy_mutation_is_rejected(self):
         changed = copy.deepcopy(self.config)
-        changed["recipes"][0]["routing"]["decisions"][0]["priority"] += 1
+        changed["recipes"][0]["decisions"][0]["priority"] += 1
         with self.assertRaisesRegex(ValueError, "changed authored routing policy"):
             runtime.verify_composed_policy(self.authored, changed, self.manifest)
 

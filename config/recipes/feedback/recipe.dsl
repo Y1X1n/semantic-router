@@ -142,7 +142,7 @@ ROUTE feedback_need_clarification (description = "A request to explain an earlie
   WHEN systemone("clarify") AND NOT systemone("wrong") AND NOT turn_relation("persistently_dissatisfied")
   MODEL "qwen/qwen3.5-rocm" (reasoning = false)
   PLUGIN response_cache {
-    enabled: true
+    enabled: false
     semantic: { match: { recall: { min_similarity: 0.86, top_k: 3 } } }
     ttl_seconds: 1800
   }

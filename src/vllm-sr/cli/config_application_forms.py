@@ -15,6 +15,8 @@ from __future__ import annotations
 from collections.abc import Callable, Iterator
 from typing import Any
 
+from cli.config_recipe_scopes import recipe_scopes
+
 MIGRATE = "run `vllm-sr config migrate`"
 DECISION_TASK_CONTRACT = "decision.v1"
 LABEL_DISTRIBUTION_CONTRACT = "label_distribution.v1"
@@ -180,7 +182,7 @@ def _removed_signal_type_forms(data: dict[str, Any]) -> Iterator[Form]:
         "the preference signal is one systemone choice question",
         "signals.systemone[preference] choosing among the preferences",
     )
-    for prefix, routing in _routing_scopes(data):
+    for prefix, routing in recipe_scopes(data):
         if _embedding_partitions(routing):
             yield (
                 prefix,
@@ -195,7 +197,7 @@ def _removed_signal_type_forms(data: dict[str, Any]) -> Iterator[Form]:
         "condition type embedding is systemone",
         "type: systemone",
     )
-    for prefix, routing in _routing_scopes(data):
+    for prefix, routing in recipe_scopes(data):
         rules = _signals(routing).get("embeddings")
         for path, rule in _named_items(f"{prefix}.signals.embeddings", rules):
             if not _text_embedding_rule(rule):
@@ -205,7 +207,7 @@ def _removed_signal_type_forms(data: dict[str, Any]) -> Iterator[Form]:
                     "the embedding signal is removed, and a rule with image anchors or an audio query has no question that replaces it",
                     "write a systemone question for it: input.image reads the request's images",
                 )
-    for prefix, routing in _routing_scopes(data):
+    for prefix, routing in recipe_scopes(data):
         signals = _signals(routing)
         if "embeddings" in signals and all(
             _text_embedding_rule(rule) for rule in _mappings(signals["embeddings"])
@@ -242,7 +244,7 @@ def _removed_signal_type_forms(data: dict[str, Any]) -> Iterator[Form]:
 
 def _application_field_forms(data: dict[str, Any]) -> Iterator[Form]:
     code = "removed_field"
-    for prefix, routing in _routing_scopes(data):
+    for prefix, routing in recipe_scopes(data):
         for path, rule in _rules(prefix, routing, "domains"):
             if "mmlu_categories" in rule:
                 yield (
@@ -251,7 +253,7 @@ def _application_field_forms(data: dict[str, Any]) -> Iterator[Form]:
                     "a domain rule's mmlu_categories are its labels",
                     "labels",
                 )
-    for prefix, routing in _routing_scopes(data):
+    for prefix, routing in recipe_scopes(data):
         if not _mappings(_signals(routing).get("domains")) and _named_domains(routing):
             yield (
                 prefix,
@@ -309,7 +311,7 @@ def _application_field_forms(data: dict[str, Any]) -> Iterator[Form]:
         "a jailbreak rule's threshold, direction and include_history are its predicate, stage and input.history, and method and patterns are removed",
         "predicate: {gte: <threshold>}, stage, input.history",
     )
-    for prefix, routing in _routing_scopes(data):
+    for prefix, routing in recipe_scopes(data):
         for path, rule in _rules(prefix, routing, "safety"):
             if "hazard" in rule:
                 yield (
@@ -318,7 +320,7 @@ def _application_field_forms(data: dict[str, Any]) -> Iterator[Form]:
                     "a safety rule's hazard part is removed",
                     "name the harm categories the rule matches in its labels (map the hazard labels to them by hand)",
                 )
-    for prefix, routing in _routing_scopes(data):
+    for prefix, routing in recipe_scopes(data):
         for path, rule in _rules(prefix, routing, "safety"):
             if "hazard" not in rule and any(
                 key in rule for key in ("threshold", "unsafe_labels", "model")
@@ -389,7 +391,7 @@ def _application_module_forms(data: dict[str, Any]) -> Iterator[Form]:
             )
     scopes = [
         (f"{prefix}.model_bindings", _mapping_at(routing, "model_bindings"))
-        for prefix, routing in _routing_scopes(data)
+        for prefix, routing in recipe_scopes(data)
     ]
     scopes.append(("global.model_catalog.bindings", _mapping_at(catalog, "bindings")))
     for prefix, bindings in scopes:
@@ -425,7 +427,7 @@ def _conditions_of_type(
 def _signal_collection(
     data: dict[str, Any], collection: str, code: str, what: str, becomes: str
 ) -> Iterator[Form]:
-    for prefix, routing in _routing_scopes(data):
+    for prefix, routing in recipe_scopes(data):
         if collection in _signals(routing):
             yield (f"{prefix}.signals.{collection}", code, what, becomes)
 
@@ -436,7 +438,7 @@ def _unlabeled_rules(
     legacy: Callable[[str], bool],
     describe: Callable[[str], tuple[str, str]],
 ) -> Iterator[Form]:
-    for prefix, routing in _routing_scopes(data):
+    for prefix, routing in recipe_scopes(data):
         for path, rule in _rules(prefix, routing, collection):
             name = rule.get("name")
             if isinstance(name, str) and legacy(name) and "labels" not in rule:
@@ -450,7 +452,7 @@ def _rules_with_any_key(
     what: str,
     becomes: str,
 ) -> Iterator[Form]:
-    for prefix, routing in _routing_scopes(data):
+    for prefix, routing in recipe_scopes(data):
         for path, rule in _rules(prefix, routing, collection):
             if any(key in rule for key in keys):
                 yield (path, "removed_field", what, becomes)
@@ -498,7 +500,7 @@ def _condition_nodes(data: dict[str, Any]) -> Iterator[tuple[str, dict[str, Any]
     depth, then projection score inputs."""
 
     yield from _decision_condition_nodes(data)
-    for prefix, routing in _routing_scopes(data):
+    for prefix, routing in recipe_scopes(data):
         scores = _mapping_at(routing, "projections").get("scores")
         for path, score in _named_items(f"{prefix}.projections.scores", scores):
             yield from _named_items(f"{path}.inputs", score.get("inputs"))
@@ -507,7 +509,7 @@ def _condition_nodes(data: dict[str, Any]) -> Iterator[tuple[str, dict[str, Any]
 def _decision_condition_nodes(
     data: dict[str, Any],
 ) -> Iterator[tuple[str, dict[str, Any]]]:
-    for prefix, routing in _routing_scopes(data):
+    for prefix, routing in recipe_scopes(data):
         for path, decision in _named_items(
             f"{prefix}.decisions", routing.get("decisions")
         ):
@@ -541,17 +543,6 @@ def _named_items(path: str, items: Any) -> Iterator[tuple[str, dict[str, Any]]]:
 def _label(item: Any, index: int) -> str:
     name = item.get("name") if isinstance(item, dict) else None
     return name if isinstance(name, str) and name else str(index)
-
-
-def _routing_scopes(data: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
-    scopes: list[tuple[str, dict[str, Any]]] = []
-    routing = data.get("routing")
-    if isinstance(routing, dict):
-        scopes.append(("routing", routing))
-    for path, recipe in _named_items("recipes", data.get("recipes")):
-        if isinstance(recipe.get("routing"), dict):
-            scopes.append((f"{path}.routing", recipe["routing"]))
-    return scopes
 
 
 def _signals(routing: dict[str, Any]) -> dict[str, Any]:

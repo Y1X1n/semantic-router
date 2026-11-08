@@ -72,7 +72,12 @@ class TestDecisionRetention:
 
 def _decisions(*plugins, **decision):
     return {
-        "routing": {"decisions": [{"name": "d", "plugins": list(plugins), **decision}]}
+        "recipes": [
+            {
+                "name": "default",
+                "decisions": [{"name": "d", "plugins": list(plugins), **decision}],
+            }
+        ]
     }
 
 
@@ -99,18 +104,18 @@ class TestRemovedReuseForms:
         assert lines == [
             "global.stores.semantic_cache: removed_field: global.stores.semantic_cache "
             "is removed; run `vllm-sr config migrate` (global.stores.response_cache)",
-            "routing.decisions[d].plugins[0]: removed_plugin_type: plugin "
+            "recipes[default].decisions[d].plugins[0]: removed_plugin_type: plugin "
             "semantic-cache is removed; run `vllm-sr config migrate` "
             "(type: response_cache)",
-            "routing.decisions[d].plugins[1]: removed_field: response_cache fields "
+            "recipes[default].decisions[d].plugins[1]: removed_field: response_cache fields "
             "similarity_threshold, control_header are removed; run `vllm-sr config "
             "migrate` (the similarity threshold is semantic.match.recall.min_similarity; "
             "allow_request_controls and control_header are request_controls.enabled "
             "and request_controls.header)",
-            "routing.decisions[d].plugins[2]: removed_plugin_type: plugin "
+            "recipes[default].decisions[d].plugins[2]: removed_plugin_type: plugin "
             "shadow_dispatch is removed; run `vllm-sr config "
             "migrate` (a shadow block in the decision's router_replay plugin)",
-            "routing.decisions[d].emits: removed_field: emits is removed; run "
+            "recipes[default].decisions[d].emits: removed_field: emits is removed; run "
             "`vllm-sr config migrate` (the decision's retention attribute)",
         ]
 

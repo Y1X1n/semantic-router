@@ -536,7 +536,7 @@ export function summarizeSetupConfig(
           typeof scopedRouting === "object" &&
           !Array.isArray(scopedRouting)
           ? [scopedRouting as Record<string, unknown>]
-          : [];
+          : [recipe as Record<string, unknown>];
       })
     : [];
   const routingProfiles = [routing, ...recipeRoutings];
@@ -637,9 +637,12 @@ export function buildSetupConfig(
         model: defaultModel.name,
       },
     },
-    routing: {
-      decisions: [catchAllDecision],
-    },
+    recipes: [
+      {
+        name: "default",
+        decisions: [catchAllDecision],
+      },
+    ],
   };
 
   return config;

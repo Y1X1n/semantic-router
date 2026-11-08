@@ -17,63 +17,66 @@ import yaml
 # ---------------------------------------------------------------------------
 
 SAMPLE_DSL_CONFIG = {
-    "routing": {
-        "projections": {
-            "scores": [
-                {
-                    "name": "privacy_risk_score",
-                    "method": "weighted_sum",
-                    "inputs": [
-                        {
-                            "name": "pii_detected",
-                            "type": "pii",
-                            "weight": 0.6,
-                        },
-                        {
-                            "name": "internal_doc",
-                            "type": "keyword",
-                            "weight": 0.4,
-                            "value_source": "confidence",
-                        },
-                    ],
-                }
-            ],
-            "mappings": [
-                {
-                    "name": "privacy_policy_band",
-                    "source": "privacy_risk_score",
-                    "outputs": [
-                        {"name": "policy_privacy_cloud", "lt": 0.35},
-                        {"name": "policy_privacy_local", "gte": 0.35},
-                    ],
-                }
-            ],
-        },
-        "decisions": [
-            {
-                "name": "local_privacy",
-                "priority": 200,
-                "rules": {
-                    "operator": "AND",
-                    "conditions": [
-                        {"type": "projection", "name": "policy_privacy_local"}
-                    ],
-                },
-                "modelRefs": [{"model": "local/private"}],
+    "recipes": [
+        {
+            "name": "default",
+            "projections": {
+                "scores": [
+                    {
+                        "name": "privacy_risk_score",
+                        "method": "weighted_sum",
+                        "inputs": [
+                            {
+                                "name": "pii_detected",
+                                "type": "pii",
+                                "weight": 0.6,
+                            },
+                            {
+                                "name": "internal_doc",
+                                "type": "keyword",
+                                "weight": 0.4,
+                                "value_source": "confidence",
+                            },
+                        ],
+                    }
+                ],
+                "mappings": [
+                    {
+                        "name": "privacy_policy_band",
+                        "source": "privacy_risk_score",
+                        "outputs": [
+                            {"name": "policy_privacy_cloud", "lt": 0.35},
+                            {"name": "policy_privacy_local", "gte": 0.35},
+                        ],
+                    }
+                ],
             },
-            {
-                "name": "cloud_standard",
-                "priority": 100,
-                "rules": {
-                    "operator": "AND",
-                    "conditions": [
-                        {"type": "projection", "name": "policy_privacy_cloud"}
-                    ],
+            "decisions": [
+                {
+                    "name": "local_privacy",
+                    "priority": 200,
+                    "rules": {
+                        "operator": "AND",
+                        "conditions": [
+                            {"type": "projection", "name": "policy_privacy_local"}
+                        ],
+                    },
+                    "modelRefs": [{"model": "local/private"}],
                 },
-                "modelRefs": [{"model": "cloud/standard"}],
-            },
-        ],
-    }
+                {
+                    "name": "cloud_standard",
+                    "priority": 100,
+                    "rules": {
+                        "operator": "AND",
+                        "conditions": [
+                            {"type": "projection", "name": "policy_privacy_cloud"}
+                        ],
+                    },
+                    "modelRefs": [{"model": "cloud/standard"}],
+                },
+            ],
+        }
+    ]
 }
 
 SAMPLE_PROBES_FLAT = [
@@ -505,7 +508,7 @@ class TestConfigMutation:
             new_value=0.19,
         )
         new_cfg = apply_fix_to_config(SAMPLE_DSL_CONFIG, fix, dsl_config)
-        mappings = new_cfg["routing"]["projections"]["mappings"]
+        mappings = new_cfg["recipes"][0]["projections"]["mappings"]
         m = next(m for m in mappings if m["name"] == "privacy_policy_band")
         gte_out = next(o for o in m["outputs"] if "gte" in o)
         lt_out = next(o for o in m["outputs"] if "lt" in o)
@@ -517,21 +520,24 @@ class TestConfigMutation:
         from tuning.engine_selection import apply_structural_fix
 
         cfg = {
-            "routing": {
-                "decisions": [
-                    {
-                        "name": "escalate_72b",
-                        "rules": {
-                            "operator": "OR",
-                            "conditions": [
-                                {"type": "category_kb", "name": "__best__:math"},
-                                {"type": "category_kb", "name": "__best__:health"},
-                                {"type": "category_kb", "name": "__best__:bio"},
-                            ],
-                        },
-                    }
-                ]
-            }
+            "recipes": [
+                {
+                    "name": "default",
+                    "decisions": [
+                        {
+                            "name": "escalate_72b",
+                            "rules": {
+                                "operator": "OR",
+                                "conditions": [
+                                    {"type": "category_kb", "name": "__best__:math"},
+                                    {"type": "category_kb", "name": "__best__:health"},
+                                    {"type": "category_kb", "name": "__best__:bio"},
+                                ],
+                            },
+                        }
+                    ],
+                }
+            ]
         }
         sfix = StructuralFix(
             decision_name="escalate_72b",
@@ -540,7 +546,7 @@ class TestConfigMutation:
             remove_signals=[{"type": "category_kb", "name": "__best__:health"}],
         )
         new_cfg = apply_structural_fix(cfg, sfix)
-        conditions = new_cfg["routing"]["decisions"][0]["rules"]["conditions"]
+        conditions = new_cfg["recipes"][0]["decisions"][0]["rules"]["conditions"]
         names = [c["name"] for c in conditions]
         assert "__best__:health" not in names
         assert "__best__:math" in names

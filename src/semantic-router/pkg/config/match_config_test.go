@@ -97,12 +97,12 @@ func TestMatchEffectiveBlock(t *testing.T) {
 }
 
 func TestMatchEmptyBlockFailsWithItsCode(t *testing.T) {
-	err := validateMatch(matchConfig(), "routing.decisions[faq].plugins[0].configuration.semantic.match", &MatchConfig{}, MatchResponseCache)
+	err := validateMatch(matchConfig(), "recipes[default].decisions[faq].plugins[0].configuration.semantic.match", &MatchConfig{}, MatchResponseCache)
 	var located *LocatedError
 	if !errors.As(err, &located) || located.Code != CodeMatchEmpty {
 		t.Fatalf("err = %v", err)
 	}
-	if want := "routing.decisions[faq].plugins[0].configuration.semantic.match: match_empty: a match block runs recall, judge or both; write at least one"; err.Error() != want {
+	if want := "recipes[default].decisions[faq].plugins[0].configuration.semantic.match: match_empty: a match block runs recall, judge or both; write at least one"; err.Error() != want {
 		t.Fatalf("err = %q\nwant %q", err, want)
 	}
 	if err := validateMatch(matchConfig(), "x", nil, MatchResponseCache); err != nil {

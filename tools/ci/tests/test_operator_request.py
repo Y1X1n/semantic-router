@@ -171,9 +171,9 @@ class OperatorRequestTests(unittest.TestCase):
             self.assertEqual(resource["metadata"]["name"], "test-router-memory")
             spec = resource["spec"]
             self.assertEqual(spec["config"]["semantic_cache"]["backend_type"], "memory")
-            routing = spec["config"]["routing"]
-            self.assertEqual(len(routing["decisions"]), 1)
-            decision = routing["decisions"][0]
+            (recipe,) = spec["config"]["recipes"]
+            self.assertEqual(len(recipe["decisions"]), 1)
+            decision = recipe["decisions"][0]
             self.assertEqual(decision["name"], "operator_ci_route")
             self.assertEqual(decision["rules"], {"operator": "AND"})
             self.assertEqual(

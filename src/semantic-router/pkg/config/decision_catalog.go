@@ -97,7 +97,7 @@ func CheckSystemOneAnswerer(path, deployment string, rule SystemOneRule, questio
 
 // CheckApplicationAnswerer refuses an application rule its deployment cannot
 // answer, as CheckSystemOneAnswerer does a systemone rule; the hint names the
-// bindings of the rule's type. scope is the rule's routing scope path
+// bindings of the rule's type. scope is the rule's recipe path
 // (RouterConfig.ScopePath of "").
 func CheckApplicationAnswerer(path, scope, deployment string, rule ApplicationRule, questionTypes, modalities []string) error {
 	bindings := fmt.Sprintf("rule deployment, %smodel_bindings.%s or global.model_catalog.bindings.%s", scope, rule.Type, rule.Type)

@@ -215,19 +215,19 @@ def load_recipe_identity(path: Path, directory_name: str) -> RecipeIdentity:
 
 
 def recipe_profiles(config: dict[str, Any]) -> dict[str, dict[str, Any]]:
-    profiles: dict[str, dict[str, Any]] = {"default": _mapping(config.get("routing"))}
+    profiles: dict[str, dict[str, Any]] = {"default": {}}
     for raw_recipe in _sequence(config.get("recipes")):
         recipe = _mapping(raw_recipe)
         name = str(recipe.get("name") or "").strip()
         if not name:
             continue
-        profiles[name] = _mapping(recipe.get("routing"))
+        profiles[name] = recipe
     return profiles
 
 
 def config_auto_entrypoints(config: dict[str, Any]) -> tuple[str, ...]:
     if config.get("recipes") and not any(
-        key in config for key in ("providers", "routing", "entrypoints")
+        key in config for key in ("providers", "entrypoints")
     ):
         return ()
     mappings = [
@@ -260,6 +260,10 @@ def config_named_entrypoints(config: dict[str, Any]) -> dict[str, str]:
 
 
 def config_entrypoints(config: dict[str, Any]) -> dict[str, str]:
+    # A portable recipe bundle has no providers and serves no traffic: the
+    # entrypoint it marks default only makes the bundle loadable on its own.
+    if config.get("recipes") and "providers" not in config:
+        return {}
     result = dict.fromkeys(config_auto_entrypoints(config), "default")
     for model_name, recipe in config_named_entrypoints(config).items():
         existing = result.get(model_name)
@@ -773,7 +777,7 @@ def command_prepare_runtime(args: argparse.Namespace) -> int:
     build_recipe_inventory(recipe_path)
     authored = load_yaml_mapping(recipe_path / "config.yaml")
     manifest, _probes = load_probe_manifest(recipe_path / "probes.yaml")
-    if not any(key in authored for key in ("providers", "routing", "entrypoints")):
+    if not any(key in authored for key in ("providers", "entrypoints")):
         composed = prepare_builtin_runtime(
             recipe_path, args.config, REPO_ROOT, manifest
         )

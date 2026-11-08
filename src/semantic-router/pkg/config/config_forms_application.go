@@ -19,7 +19,7 @@ import (
 // module's threshold becomes the predicate of the rules that inherited it.
 var applicationForms = slices.Concat(removedSignalTypeForms, applicationFieldForms, applicationModuleForms)
 
-// conditionPaths are the places a routing scope names a signal: decision
+// conditionPaths are the places a recipe names a signal: decision
 // conditions at any depth and projection score inputs.
 var conditionPaths = slices.Concat(
 	RoutingScopes("decisions[].rules.**"),
@@ -170,7 +170,7 @@ var removedSignalTypeForms = []ConfigForm{
 	},
 	{
 		Code:    CodeRemovedSignalType,
-		Paths:   []string{"routing", "recipes[].routing"},
+		Paths:   []string{"recipes[]"},
 		Match:   func(node *yaml.Node, _ string) bool { return len(embeddingPartitions(node)) > 0 },
 		What:    "projection partitions over embedding rules are removed with the embedding signal",
 		Becomes: "drop them; a systemone choice question chooses one of a partition's members",
@@ -263,7 +263,7 @@ var applicationFieldForms = []ConfigForm{
 	},
 	{
 		Code:  CodeRemovedField,
-		Paths: []string{"routing", "recipes[].routing"},
+		Paths: []string{"recipes[]"},
 		Match: func(node *yaml.Node, _ string) bool {
 			return len(sequenceAt(node, "signals", "domains")) == 0 && len(domainConditionNames(node)) > 0
 		},
@@ -657,7 +657,7 @@ func inheritsModuleThreshold(collection string, rule *yaml.Node) bool {
 	return len(labels) == 0 || slices.Equal(labels, []string{"FACT_CHECK_NEEDED"})
 }
 
-// embeddingPartitions are a routing scope's projection partitions with a
+// embeddingPartitions are a recipe's projection partitions with a
 // member that is an embedding rule.
 func embeddingPartitions(scope *yaml.Node) []*yaml.Node {
 	var embeddings []string
@@ -694,7 +694,7 @@ func embeddingQuestion(rule *yaml.Node) string {
 	return question
 }
 
-// domainConditionNames are the domains a routing scope's decisions name, in
+// domainConditionNames are the domains a recipe's decisions name, in
 // order.
 func domainConditionNames(scope *yaml.Node) []string {
 	var names []string
@@ -729,31 +729,27 @@ func preferenceQuestion(signals *yaml.Node) string {
 	return preferenceQuestionName
 }
 
-// scopeRouting is the routing mapping of the scope a path lies in: the
-// top-level routing block or a recipe's.
+// scopeRouting is the recipe a path lies in.
 func scopeRouting(root *yaml.Node, path string) *yaml.Node {
-	if strings.HasPrefix(path, "routing.") {
-		return mappingAt(root, "routing")
-	}
 	label, _, _ := strings.Cut(strings.TrimPrefix(path, "recipes["), "]")
 	for index, recipe := range sequenceAt(root, "recipes") {
 		if scalarAt(recipe, "name") == label || strconv.Itoa(index) == label {
-			return mappingAt(recipe, "routing")
+			return resolveAlias(recipe)
 		}
 	}
 	return nil
 }
 
-// scopeSignals is the signals mapping of the routing scope a path lies in.
+// scopeSignals is the signals mapping of the recipe a path lies in.
 func scopeSignals(root *yaml.Node, path string) *yaml.Node {
 	return mappingAt(scopeRouting(root, path), "signals")
 }
 
-// allScopeSignals are the signals mappings of every routing scope.
+// allScopeSignals are the signals mappings of every recipe.
 func allScopeSignals(root *yaml.Node) []*yaml.Node {
-	scopes := []*yaml.Node{mappingAt(root, "routing", "signals")}
+	var scopes []*yaml.Node
 	for _, recipe := range sequenceAt(root, "recipes") {
-		scopes = append(scopes, mappingAt(recipe, "routing", "signals"))
+		scopes = append(scopes, mappingAt(recipe, "signals"))
 	}
 	return slices.DeleteFunc(scopes, func(signals *yaml.Node) bool { return signals == nil })
 }
@@ -859,11 +855,9 @@ func floatScalar(value float64) *yaml.Node {
 // bindingKeyOf is the binding key a model_bindings or bindings path ends in;
 // a key may hold dots.
 func bindingKeyOf(path string) string {
-	for _, prefix := range []string{"global.model_catalog.bindings.", "routing.model_bindings."} {
-		if strings.HasPrefix(path, prefix) {
-			return strings.TrimPrefix(path, prefix)
-		}
+	if key, ok := strings.CutPrefix(path, "global.model_catalog.bindings."); ok {
+		return key
 	}
-	_, key, _ := strings.Cut(path, ".routing.model_bindings.")
+	_, key, _ := strings.Cut(path, "].model_bindings.")
 	return key
 }

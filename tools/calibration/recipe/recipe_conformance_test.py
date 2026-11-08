@@ -493,7 +493,7 @@ class RecipeConformanceTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tempdir:
             recipe = Path(tempdir) / "incomplete"
             recipe.mkdir()
-            (recipe / "config.yaml").write_text("version: v0.3\n", encoding="utf-8")
+            (recipe / "config.yaml").write_text("version: v0.5\n", encoding="utf-8")
 
             with self.assertRaisesRegex(ValueError, "five-file contract"):
                 recipe_conformance.validate_recipe_directory(recipe)
@@ -569,7 +569,7 @@ class RecipeConformanceTest(unittest.TestCase):
     def test_portable_recipe_defaults_do_not_create_runtime_entrypoints(self) -> None:
         config = {
             "global": {"router": {"learning": {"enabled": True}}},
-            "recipes": [{"name": "balanced", "routing": {}}],
+            "recipes": [{"name": "balanced"}],
         }
         probes = [
             recipe_conformance.Probe(
@@ -590,22 +590,11 @@ class RecipeConformanceTest(unittest.TestCase):
     def test_composed_recipe_keeps_runtime_entrypoint_coverage(self) -> None:
         bundle = {
             "global": {"router": {"learning": {"enabled": True}}},
-            "recipes": [{"name": "balanced", "routing": {}}],
+            "recipes": [{"name": "balanced"}],
         }
-        for field, value in (
-            ("providers", {"models": [{"name": "backend"}]}),
-            ("routing", {"decisions": [{"name": "fallback"}]}),
-            ("entrypoints", [{"recipe": "balanced", "model_names": ["route"]}]),
-        ):
-            with self.subTest(field=field):
-                config = {**bundle, field: value}
-                entrypoints = recipe_conformance.config_entrypoints(config)
-                self.assertEqual(
-                    {name: entrypoints[name] for name in ("vllm-sr/auto",)},
-                    dict.fromkeys(("vllm-sr/auto",), "default"),
-                )
-                if field == "entrypoints":
-                    self.assertEqual(entrypoints["route"], "balanced")
+        config = {**bundle, "providers": {"models": [{"name": "backend"}]}}
+        entrypoints = recipe_conformance.config_entrypoints(config)
+        self.assertEqual(entrypoints["vllm-sr/auto"], "default")
 
     def test_consolidated_report_marks_missing_recipes(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:

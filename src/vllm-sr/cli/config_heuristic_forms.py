@@ -13,6 +13,8 @@ from __future__ import annotations
 from collections.abc import Iterator
 from typing import Any
 
+from cli.config_recipe_scopes import recipe_scopes
+
 MIGRATE = "run `vllm-sr config migrate`"
 REMOVED_SIGNAL_TYPE = "removed_signal_type"
 INVALID_VALUE = "invalid_value"
@@ -80,7 +82,7 @@ def removed_heuristic_forms(data: dict[str, Any]) -> list[str]:
 def _signal_collection(
     data: dict[str, Any], collection: str, what: str, becomes: str
 ) -> Iterator[Form]:
-    for prefix, routing in _routing_scopes(data):
+    for prefix, routing in recipe_scopes(data):
         if collection in _signals(routing):
             path = f"{prefix}.signals.{collection}"
             yield (path, REMOVED_SIGNAL_TYPE, what, becomes)
@@ -95,7 +97,7 @@ def _references(
 
 
 def _text_bytes_rules(data: dict[str, Any]) -> Iterator[Form]:
-    for prefix, routing in _routing_scopes(data):
+    for prefix, routing in recipe_scopes(data):
         for path, rule in _named_items(
             f"{prefix}.signals.structure", _signals(routing).get("structure")
         ):
@@ -110,7 +112,7 @@ def _text_bytes_rules(data: dict[str, Any]) -> Iterator[Form]:
 
 
 def _image_content_rules(data: dict[str, Any]) -> Iterator[Form]:
-    for prefix, routing in _routing_scopes(data):
+    for prefix, routing in recipe_scopes(data):
         for path, rule in _named_items(
             f"{prefix}.signals.conversation", _signals(routing).get("conversation")
         ):
@@ -127,7 +129,7 @@ def _image_content_rules(data: dict[str, Any]) -> Iterator[Form]:
 def _decision_condition_nodes(
     data: dict[str, Any],
 ) -> Iterator[tuple[str, dict[str, Any]]]:
-    for prefix, routing in _routing_scopes(data):
+    for prefix, routing in recipe_scopes(data):
         for path, decision in _named_items(
             f"{prefix}.decisions", routing.get("decisions")
         ):
@@ -135,7 +137,7 @@ def _decision_condition_nodes(
 
 
 def _projection_inputs(data: dict[str, Any]) -> Iterator[tuple[str, dict[str, Any]]]:
-    for prefix, routing in _routing_scopes(data):
+    for prefix, routing in recipe_scopes(data):
         scores = _mapping_at(routing, "projections").get("scores")
         for path, score in _named_items(f"{prefix}.projections.scores", scores):
             yield from _named_items(f"{path}.inputs", score.get("inputs"))
@@ -160,17 +162,6 @@ def _named_items(path: str, items: Any) -> Iterator[tuple[str, dict[str, Any]]]:
 def _label(item: Any, index: int) -> str:
     name = item.get("name") if isinstance(item, dict) else None
     return name if isinstance(name, str) and name else str(index)
-
-
-def _routing_scopes(data: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
-    scopes: list[tuple[str, dict[str, Any]]] = []
-    routing = data.get("routing")
-    if isinstance(routing, dict):
-        scopes.append(("routing", routing))
-    for path, recipe in _named_items("recipes", data.get("recipes")):
-        if isinstance(recipe.get("routing"), dict):
-            scopes.append((f"{path}.routing", recipe["routing"]))
-    return scopes
 
 
 def _signals(routing: dict[str, Any]) -> dict[str, Any]:

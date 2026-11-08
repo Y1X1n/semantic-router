@@ -92,6 +92,12 @@ MODEL local/qwen3.6-35b-flash {
 # =============================================================================
 
 ENTRYPOINT {
+  model_names: ["vllm-sr/auto"]
+  recipe: "default"
+  default: true
+}
+
+ENTRYPOINT {
   model_names: ["vllm-sr/mom-v1-blend"]
   recipe: "balanced"
 }

@@ -345,6 +345,9 @@ export interface RoutingConfig {
 export interface EntrypointConfig {
   model_names: string[]
   recipe: string
+  api?: 'chat' | 'systemone'
+  /** Marks the entrypoint of the default recipe when there are several recipes. */
+  default?: boolean
 }
 
 export interface RecipeRoutingConfig {
@@ -438,18 +441,9 @@ export interface ResponseAPIConfig {
 }
 
 export interface RouterReplayConfig {
-  enabled?: boolean
   store_backend?: string
   ttl_seconds?: number
   async_writes?: boolean
-  capture_request_body?: boolean
-  capture_response_body?: boolean
-  capture_personal_data?: boolean
-  capture_tool_results?: boolean
-  max_records?: number
-  max_body_bytes?: number
-  max_tool_trace_bytes?: number
-  max_tool_trace_steps?: number
 }
 
 export interface MemoryMilvusConfig {
@@ -460,7 +454,6 @@ export interface MemoryMilvusConfig {
 }
 
 export interface MemoryConfig {
-  enabled?: boolean
   auto_store?: boolean
   milvus?: MemoryMilvusConfig
   embedding?: StoreEmbeddingConfig
@@ -473,9 +466,7 @@ export interface MemoryConfig {
 }
 
 export interface SemanticCacheConfig {
-  enabled?: boolean
   backend_type?: string
-  similarity_threshold?: number
   max_entries?: number
   ttl_seconds?: number
   eviction_policy?: string
@@ -1371,6 +1362,8 @@ export interface ConfigData {
     records?: EvaluationRecordConfig[]
   }
   routing?: RoutingConfig
+  /** The name and description of the recipe the manager edits as routing. */
+  default_recipe?: { name: string; description?: string }
   entrypoints?: EntrypointConfig[]
   recipes?: RecipeConfig[]
   global?: CanonicalGlobalConfig

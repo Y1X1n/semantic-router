@@ -12,6 +12,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from cli.config_recipe_scopes import recipe_scopes
+
 MIGRATE = "run `vllm-sr config migrate`"
 
 RESPONSE_CACHE = "response_cache"
@@ -31,7 +33,7 @@ def removed_reuse_forms(data: dict[str, Any]) -> list[str]:
             "global.stores.semantic_cache: removed_field: global.stores.semantic_cache "
             f"is removed; {MIGRATE} (global.stores.response_cache)"
         )
-    for prefix, routing in _routing_scopes(data):
+    for prefix, routing in recipe_scopes(data):
         decisions = routing.get("decisions")
         for index, decision in enumerate(
             decisions if isinstance(decisions, list) else []
@@ -102,18 +104,3 @@ def _plugin_forms(plugin: dict[str, Any]) -> list[tuple[str, str, str]]:
             )
         )
     return forms
-
-
-def _routing_scopes(data: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
-    scopes: list[tuple[str, dict[str, Any]]] = []
-    routing = data.get("routing")
-    if isinstance(routing, dict):
-        scopes.append(("routing", routing))
-    recipes = data.get("recipes")
-    for index, recipe in enumerate(recipes if isinstance(recipes, list) else []):
-        if not isinstance(recipe, dict) or not isinstance(recipe.get("routing"), dict):
-            continue
-        name = recipe.get("name")
-        label = name if isinstance(name, str) and name else str(index)
-        scopes.append((f"recipes[{label}].routing", recipe["routing"]))
-    return scopes

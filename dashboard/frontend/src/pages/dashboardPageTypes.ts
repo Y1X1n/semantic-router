@@ -40,6 +40,7 @@ export interface RouterConfig {
     signals?: Record<string, SignalConfig[]>
     decisions?: DecisionRule[]
   }
+  default_recipe?: { name: string; description?: string }
   entrypoints?: Array<{
     api?: 'chat' | 'systemone'
     model_names: string[]
