@@ -161,7 +161,8 @@ type systemOneCall struct {
 
 // systemOneCalls groups rules by the deployment that answers them and the
 // state they read, in rule order: every rule of a stage goes to its
-// deployment in one call, its other states as further states of it.
+// deployment in one call, a batch with an entry per state when it reads
+// several.
 func (c *Classifier) systemOneCalls(rules []askedRule, reading systemOneReading) []*systemOneCall {
 	var calls []*systemOneCall
 	for _, asked := range rules {

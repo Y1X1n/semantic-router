@@ -181,13 +181,14 @@ func (r *vela2Recorder) take() []vela2Exchange {
 	return taken
 }
 
-// vela2Call is a decisions call as the runtime got it, with its answer. The
-// questions stay raw: a Set or Span question's label order is part of what
-// the model reads.
+// vela2Call is a decisions call as the runtime got it, with its answer: a
+// standard request (state and questions) or a batch (states). The questions
+// stay raw: a Set or Span question's label order is part of what the model
+// reads.
 type vela2Call struct {
 	Model     *string                    `json:"model,omitempty"`
-	State     json.RawMessage            `json:"state"`
-	Questions map[string]json.RawMessage `json:"questions"`
+	State     json.RawMessage            `json:"state,omitempty"`
+	Questions map[string]json.RawMessage `json:"questions,omitempty"`
 	States    map[string]vela2CallState  `json:"states,omitempty"`
 	Options   map[string]json.RawMessage `json:"options,omitempty"`
 	answer    map[string]interface{}
@@ -246,9 +247,9 @@ func decisionCalls(t *testing.T, exchanges []vela2Exchange) []vela2Call {
 	return calls
 }
 
-// stateRequests are the requests that ask each state of a call alone: its own
-// state first, then its further states by name, each with the call's model
-// and options but no deadline.
+// stateRequests are the requests that ask each state of a call alone, each
+// with the call's model and options but no deadline: a standard call's state
+// (named ""), or each entry of a batch by name.
 func (c vela2Call) stateRequests() (names []string, requests []vela2Call) {
 	options := make(map[string]json.RawMessage, len(c.Options))
 	for key, value := range c.Options {
@@ -256,8 +257,9 @@ func (c vela2Call) stateRequests() (names []string, requests []vela2Call) {
 			options[key] = value
 		}
 	}
-	names = append(names, "")
-	requests = append(requests, vela2Call{Model: c.Model, State: c.State, Questions: c.Questions, Options: options})
+	if c.States == nil {
+		return []string{""}, []vela2Call{{Model: c.Model, State: c.State, Questions: c.Questions, Options: options}}
+	}
 	for _, name := range sortedKeys(c.States) {
 		names = append(names, name)
 		requests = append(requests, vela2Call{Model: c.Model, State: c.States[name].State, Questions: c.States[name].Questions, Options: options})
@@ -268,13 +270,14 @@ func (c vela2Call) stateRequests() (names []string, requests []vela2Call) {
 // withoutDeadline is the call itself, all of its states, without its deadline.
 func (c vela2Call) withoutDeadline() vela2Call {
 	_, requests := c.stateRequests()
-	repeat := requests[0]
-	repeat.States = c.States
-	return repeat
+	if c.States == nil {
+		return requests[0]
+	}
+	return vela2Call{Model: c.Model, States: c.States, Options: requests[0].Options}
 }
 
-// stateAnswer is the answer about one state of the call: its own ("") or a
-// further state's.
+// stateAnswer is the answer about one state of the call: a standard call's
+// (name "") or a batch entry's.
 func (c vela2Call) stateAnswer(t *testing.T, name string) map[string]interface{} {
 	t.Helper()
 	if name == "" {
@@ -335,8 +338,8 @@ type vela2Answer struct {
 	Labels  map[string]string
 }
 
-// flattenAnswer reduces a decisions response (or one entry of its states) to
-// its answers; the served model, meta and further states are not answers.
+// flattenAnswer reduces a decisions response (or one entry of a batch's) to
+// its answers; the served model, meta and a batch's entries are not answers.
 func flattenAnswer(answer map[string]interface{}) vela2Answer {
 	flat := vela2Answer{Numbers: map[string]float64{}, Labels: map[string]string{}}
 	var walk func(path string, value interface{})
@@ -369,8 +372,8 @@ func flattenAnswer(answer map[string]interface{}) vela2Answer {
 }
 
 // recordedAnswer is an answer as the record keeps it: the response without
-// the served model, meta and further states, its numbers to seven decimals
-// (far below the tolerance, and stable to read).
+// the served model, meta and a batch's entries, its numbers to seven
+// decimals (far below the tolerance, and stable to read).
 func recordedAnswer(answer map[string]interface{}) map[string]interface{} {
 	var round func(value interface{}) interface{}
 	round = func(value interface{}) interface{} {

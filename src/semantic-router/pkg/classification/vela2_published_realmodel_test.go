@@ -337,44 +337,46 @@ func checkVela2Item(t *testing.T, endpoint string, classifier *Classifier, cfg *
 		t.Fatalf("signal errors %v", results.SignalErrors)
 	}
 
-	// One decisions call carries every question of the stage, with one
-	// further state per earlier message the history-aware rules read.
+	// One decisions call carries every question of the stage: a standard
+	// request about the request, or a batch with an entry for it and one per
+	// earlier message the history-aware rules read.
 	calls := decisionCalls(t, recorder.take())
 	if len(calls) != 1 {
 		t.Fatalf("the stage sent %d decisions calls, want one", len(calls))
 	}
 	call := calls[0]
 	history := historyForHistoryAwareSignals(input.PriorUserMessages, input.NonUserMessages)
-	if len(call.States) != len(history) {
-		t.Fatalf("the call carries %d further states, want one per earlier message (%d)", len(call.States), len(history))
-	}
-	roles := map[string]string{"": "request"}
-	if text := jsonString(call.State); text != item.text {
-		t.Fatalf("the call's own state is %q, want the request", text)
+	names, alone := call.stateRequests()
+	if len(names) != 1+len(history) {
+		t.Fatalf("the call asks about %d states, want the request and each earlier message (%d)", len(names), len(history))
 	}
 	asked := slices.Clone(vela2RequestQuestions)
 	if item.assistant != "" {
 		asked = append(asked, vela2FeedbackQuestion)
 		sort.Strings(asked)
 	}
-	if got := sortedKeys(call.Questions); !slices.Equal(got, asked) {
-		t.Fatalf("the call asks %v about the request, want %v", got, asked)
+	roles := map[string]string{}
+	request, found := "", false
+	for index, name := range names {
+		text, questions := jsonString(alone[index].State), vela2HistoryQuestions
+		if text == item.text {
+			roles[name], request, found, questions = "request", name, true, asked
+		} else if position := slices.Index(history, text); position >= 0 {
+			roles[name] = fmt.Sprintf("history:%d", position+1)
+		} else {
+			t.Fatalf("state %s is %s, which is neither the request nor an earlier message", name, alone[index].State)
+		}
+		if got := sortedKeys(alone[index].Questions); !slices.Equal(got, questions) {
+			t.Fatalf("the call asks %v about %s, want %v", got, roles[name], questions)
+		}
 	}
-	for name, state := range call.States {
-		index := slices.Index(history, jsonString(state.State))
-		if index < 0 {
-			t.Fatalf("state %s is %s, which is no earlier message", name, state.State)
-		}
-		roles[name] = fmt.Sprintf("history:%d", index+1)
-		if got := sortedKeys(state.Questions); !slices.Equal(got, vela2HistoryQuestions) {
-			t.Fatalf("the call asks %v about %s, want %v", got, roles[name], vela2HistoryQuestions)
-		}
+	if !found {
+		t.Fatalf("the call asks nothing about the request: %v", roles)
 	}
 
 	// The call answers the same when it is asked again, and each of its
 	// states as its questions asked about that state alone (with one state,
 	// the repeated call is that request).
-	names, alone := call.stateRequests()
 	repeat := vela2Call{answer: askVela2(t, endpoint, call.withoutDeadline())}
 	answers := make(map[string]vela2StateAnswer, len(names))
 	for index, name := range names {
@@ -389,7 +391,7 @@ func checkVela2Item(t *testing.T, endpoint string, classifier *Classifier, cfg *
 		}
 		answers[roles[name]] = checkVela2Record(t, alone[index].Questions, fused, os.Getenv(vela2RecordEnv) == "1")
 	}
-	checkVela2Signals(t, cfg, results, call, history)
+	checkVela2Signals(t, cfg, results, call, request, history)
 	return answers
 }
 
@@ -425,12 +427,13 @@ func compareVela2States(t *testing.T, got, want map[string]vela2StateAnswer, tol
 }
 
 // checkVela2Signals checks that the Router read each signal from its own
-// state's answers in the fused call: the decision questions' values, the
-// guard's highest risk and the PII entities over the request and its earlier
-// messages, and the safety rule's risk.
-func checkVela2Signals(t *testing.T, cfg *config.RouterConfig, results *SignalResults, call vela2Call, history []string) {
+// state's answers in the fused call, the request's under the name request:
+// the decision questions' values, the guard's highest risk and the PII
+// entities over the request and its earlier messages, and the safety rule's
+// risk.
+func checkVela2Signals(t *testing.T, cfg *config.RouterConfig, results *SignalResults, call vela2Call, request string, history []string) {
 	t.Helper()
-	own := call.stateAnswer(t, "")
+	own := call.stateAnswer(t, request)
 	expect := func(key string, want float64) {
 		t.Helper()
 		if got, ok := results.SignalValues[key]; !ok || math.IsNaN(want) || math.Abs(got-want) > vela2StateTolerance {
@@ -471,7 +474,8 @@ func checkVela2Signals(t *testing.T, cfg *config.RouterConfig, results *SignalRe
 
 	risk := 0.0
 	entities := map[string]bool{}
-	for _, name := range append([]string{""}, sortedKeys(call.States)...) {
+	names, _ := call.stateRequests()
+	for _, name := range names {
 		answer := call.stateAnswer(t, name)
 		risk = math.Max(risk, number(answer, "answers", "prompt_guard:attack", "probabilities", "jailbreak"))
 		for _, span := range spanList(answer, "pii_classifier:pii") {
