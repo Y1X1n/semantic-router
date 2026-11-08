@@ -104,7 +104,6 @@ func newTestSemanticCache(cfg *config.RouterConfig) (cache.CacheBackend, error) 
 		MaxEntries:          cfg.MaxEntries,
 		TTLSeconds:          cfg.TTLSeconds,
 		EvictionPolicy:      cache.EvictionPolicyType(cfg.EvictionPolicy),
-		EmbeddingModel:      cfg.EmbeddingModel,
 	})
 }
 

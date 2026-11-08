@@ -11844,14 +11844,8 @@
                       "type": "string"
                     }
                   },
-                  "latency_priority": {
-                    "type": "number"
-                  },
                   "model": {
                     "type": "string"
-                  },
-                  "quality_priority": {
-                    "type": "number"
                   },
                   "recipe": {
                     "type": "string"
@@ -19393,14 +19387,8 @@
                   "dimension": {
                     "type": "integer"
                   },
-                  "latency_priority": {
-                    "type": "number"
-                  },
                   "model": {
                     "type": "string"
-                  },
-                  "quality_priority": {
-                    "type": "number"
                   },
                   "recipe": {
                     "type": "string"
@@ -19837,14 +19825,8 @@
                   "dimension": {
                     "type": "integer"
                   },
-                  "latency_priority": {
-                    "type": "number"
-                  },
                   "model": {
                     "type": "string"
-                  },
-                  "quality_priority": {
-                    "type": "number"
                   },
                   "query": {
                     "type": "string"
