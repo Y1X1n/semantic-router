@@ -4,9 +4,6 @@
   "$defs": {
     "APIConfig": {
       "properties": {
-        "embeddings": {
-          "$ref": "#/$defs/EmbeddingAPIConfig"
-        },
         "batch_classification": {
           "$ref": "#/$defs/BatchClassificationConfig"
         },
@@ -476,10 +473,7 @@
     "CanonicalEmbeddingModels": {
       "properties": {
         "default": {
-          "type": "string"
-        },
-        "multimodal": {
-          "type": "string"
+          "$ref": "#/$defs/EmbeddingModelBinding"
         }
       },
       "additionalProperties": false,
@@ -2323,15 +2317,6 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "EmbeddingAPIConfig": {
-      "properties": {
-        "enabled": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
     "EmbeddingBinding": {
       "properties": {
         "deployment": {
@@ -2343,6 +2328,19 @@
       },
       "additionalProperties": false,
       "type": "object"
+    },
+    "EmbeddingModelBinding": {
+      "properties": {
+        "deployment": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "deployment"
+      ]
     },
     "EscalateAccept": {
       "properties": {
@@ -3437,6 +3435,9 @@
         },
         "min_ratio": {
           "type": "number"
+        },
+        "max_candidates": {
+          "type": "integer"
         },
         "on_error": {
           "type": "string",
@@ -6580,13 +6581,6 @@
             "keep",
             "strip",
             "fail"
-          ]
-        },
-        "on_overflow": {
-          "type": "string",
-          "enum": [
-            "keep",
-            "reject"
           ]
         },
         "input": {

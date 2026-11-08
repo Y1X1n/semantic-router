@@ -207,8 +207,6 @@ func documentedAPIOverviewPaths() []string {
 		"/api/v1/diagnostics/classify/security",
 		"/api/v1/diagnostics/classify/batch",
 		"/api/v1/routing/preview",
-		"/api/v1/diagnostics/embeddings",
-		"/api/v1/diagnostics/similarity/batch",
 		"/health",
 		"/ready",
 		"/startup-status",
