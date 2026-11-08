@@ -33,7 +33,7 @@ var configContractRequiredDocs = []docNeedles{
 			"exhaustive canonical reference config",
 			"`config/fragments/signal/`",
 			"`tutorials/signal/heuristic/`",
-			"`tutorials/signal/learned/`",
+			"`tutorials/signal/application/`",
 			"`config/fragments/decision/`",
 			"`config/fragments/algorithm/`",
 			"`config/fragments/plugin/`",
@@ -257,14 +257,6 @@ var configContractForbiddenDocs = []docNeedles{
 		},
 	},
 	{
-		path: repoRel("website", "docs", "training", "ml-model-selection.md"),
-		needles: []string{
-			"config:\n  model_selection:",
-			"\nmodel_selection:\n",
-			"\nembedding_models:\n",
-		},
-	},
-	{
 		path: repoRel("website", "docs", "training", "model-performance-eval.md"),
 		needles: []string{
 			"\nvllm_endpoints:\n",
@@ -414,10 +406,12 @@ var latestTutorialOverviewDocs = []docNeedles{
 		path: repoRel("website", "docs", "tutorials", "signal", "overview.md"),
 		needles: []string{
 			"Signals turn request facts into names",
+			"### The System One Primitive",
+			"### Application Signals",
 			"### Heuristic Signals",
-			"### Learned Signals",
+			"[System One](./systemone)",
 			"[Keyword](./heuristic/keyword)",
-			"[Domain](./learned/domain)",
+			"[Domain](./application/domain)",
 		},
 	},
 	{
@@ -480,7 +474,9 @@ var latestTutorialOverviewForbidden = []docNeedles{
 var latestTutorialSidebarRequired = []string{
 	"label: 'Signals'",
 	"label: 'Heuristic'",
-	"label: 'Learned'",
+	"label: 'Application'",
+	"label: 'System One'",
+	"'system-one/overview'",
 	"label: 'Decisions'",
 	"label: 'Algorithms'",
 	"label: 'Selectors'",

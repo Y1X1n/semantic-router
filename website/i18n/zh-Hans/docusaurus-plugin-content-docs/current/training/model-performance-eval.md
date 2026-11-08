@@ -184,4 +184,3 @@ MMLU-Pro 生成器为被评测答案排名；它不测试完整 Router 数据路
 
 - [`src/training/model_eval`](https://github.com/vllm-project/semantic-router/tree/main/src/training/model_eval)
 - [模型训练概览](./training-overview)
-- [当前模型目录](./model-catalog)

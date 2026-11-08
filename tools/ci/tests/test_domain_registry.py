@@ -217,10 +217,10 @@ class DomainRegistryTests(unittest.TestCase):
         translated = "website/i18n/zh-Hans/docusaurus-plugin-content-docs/current"
         for path in (
             "website/docs/model-runtime/reference.md",
-            "website/docs/model-runtime/guides/pii.md",
-            "website/docs/tutorials/signal/learned/systemone.md",
+            "website/docs/model-runtime/guides/embeddings.md",
+            "website/docs/tutorials/signal/systemone.md",
             f"{translated}/model-runtime/deploy.md",
-            f"{translated}/model-runtime/guides/decisions.md",
+            f"{translated}/model-runtime/guides/embeddings.md",
             f"{translated}/tutorials/algorithm/selection/systemone.md",
         ):
             with self.subTest(path=path):

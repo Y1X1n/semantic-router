@@ -18,7 +18,7 @@ Because every wire format (Chat Completions, Responses, Anthropic Messages) is d
 
 ## Configuration
 
-Masking masks what a [pii rule](../signal/learned/pii) detects. Declare the
+Masking masks what a [pii rule](../signal/application/pii) detects. Declare the
 rule under `recipes[].signals.pii` and name it in the plugin under
 `recipes[].decisions[].plugins`:
 

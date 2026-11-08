@@ -36,7 +36,8 @@ to them:
 | `vela-embedding` | Vela 1.0 Embedding | `embeddings.default` |
 
 Embeddings serve recall only: `vela-embedding` starts when the response cache,
-memory or a vector store recalls with it, never for a decision.
+memory or a vector store recalls with it, never for a decision (see
+[Embeddings](../model-runtime/guides/embeddings.md)).
 
 ## Field reference
 

@@ -52,7 +52,7 @@ for assets, Box, track and long context.
 In Router mode, publish an `entrypoints` item with `api: systemone` and grant
 its name in `listeners[].systemone.models`. The Chat default `vllm-sr/auto`
 does not automatically publish a native entrypoint. Follow the
-[System One cascade guide](../tutorials/algorithm/native/cascade.md) to connect
+[System One escalate guide](../tutorials/algorithm/looper/escalate.md#on-system-one) to connect
 local deployments or remote Engine and compatible System One services.
 
 ```bash

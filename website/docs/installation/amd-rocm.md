@@ -238,30 +238,26 @@ documents and test RAG through a real chat request using `vela-auto`.
 
 ### Longer inputs
 
-Every Vela task model reads up to 32,768 tokens on ROCm. Set the longest input
-a deployment accepts with `input.max_tokens`; short requests stay fast because
-nothing is padded to a fixed size:
+The decision model reads up to its own input limit on ROCm: 32,768 tokens per
+decision for vela3-fast, and up to 262,144 for the larger Vela 3.0 sizes.
+Short requests stay fast because nothing is padded to a fixed size. To run
+the decision model on the GPU, declare `primary` there:
 
 ```yaml
 global:
   model_catalog:
     deployments:
-      domain-amd:
+      primary:
         provider: model_runtime
-        artifact: vllm-sr/Vela-1.0-Encoder-307M-Domain
+        artifact: vllm-sr/vela3-lite
         device: rocm:0
-        input:
-          max_tokens: 32768
-          overflow: truncate
 ```
 
-`truncate` classifies the first 32,768 tokens, including special tokens, and
-reports that it did; `reject` leaves the signal unknown for longer input
-instead. This limit applies to the classifier only; it does not shorten the
-chat request or change the generation model's context window. Guard and PII
-scan long inputs in overlapping windows (`overflow: window`); see
-[Prompt attacks and unsafe content](../model-runtime/guides/safety.md) and
-[Detect PII](../model-runtime/guides/pii.md).
+The jailbreak, safety, PII and hallucination questions read the whole input,
+in windows; the others read what fits the model's input. The limit applies to
+the decision model only; it does not shorten the chat request or change the
+generation model's context window. See
+[Long inputs](../system-one/performance#long-inputs).
 
 Earlier releases selected fixed ONNX Runtime graphs (`head:
 onnx/model_rocm_32k.onnx`) and MIGraphX compilation caches here.

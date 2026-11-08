@@ -58,9 +58,9 @@ vllm-sr config validate --config config.yaml
 vllm-sr serve --config config.yaml
 ```
 
-The [Vela model guide](../website/docs/tutorials/global/vela-models.md) explains
-the built-in model defaults, explicit older models, and opt-in long-context
-deployment settings. Model migration preserves the existing input budgets.
+[Choose a deployment](../website/docs/system-one/deployments.md) explains the
+built-in decision model, the other sizes and remote System One APIs, and what
+the Router checks at load.
 
 `src/semantic-router/pkg/configschema/router-config-v0.5.schema.json` is the one
 checked-in schema generated from the Go configuration types and routing
@@ -76,10 +76,11 @@ Fragments show one capability in its owning section. They are not complete
 deployments and may rely on model or service definitions from a base config.
 
 - `config/fragments/signal/`: request and response facts used by decisions.
-  Heuristic and learned signal guides live under
-  `tutorials/signal/heuristic/` and `tutorials/signal/learned/`.
+  The guide of the `systemone` primitive is `tutorials/signal/systemone.md`;
+  application and heuristic signal guides live under
+  `tutorials/signal/application/` and `tutorials/signal/heuristic/`.
 - `config/fragments/decision/`: `single`, `and`, `or`, `not`, and nested
-  boolean rule shapes. Classifier-backed rules may resolve a terminal
+  boolean rule shapes. Rules on model-judged signals may resolve a terminal
   `Unknown` result with `on_unknown: no_match|match|fail_request`.
 - `config/fragments/algorithm/`: per-decision model selection and bounded
   multi-model execution policies.

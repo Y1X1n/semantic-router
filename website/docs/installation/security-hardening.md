@@ -290,6 +290,36 @@ Recipe Model Cards describe the checked-in replay and cache behavior for each
 maintained recipe. See [Data and Storage](storage-overview) for deployment
 guides.
 
+## Review what the decision model reads
+
+Every routing judgment is a question to the decision model, so the model a
+question resolves to sees the parts of the request the question reads:
+
+- **Local by default.** With nothing configured, every question asks the
+  local `primary` deployment, and personal-data rules run there. A binding or
+  a rule's `deployment` moves a question elsewhere; bind `pii` and
+  `hallucination` explicitly when the decision model is remote.
+- **Remote models receive what they judge.** A `systemone` deployment receives
+  the state parts its questions read: the request, the earlier turns, the
+  tool results, the model's answer, a candidate, and the images of image
+  questions. [What leaves the host](../system-one/deployments#what-leaves-the-host)
+  lists them per signal. A remote embedding provider receives the text it
+  embeds.
+- **Guards can fail open or closed.** A `jailbreak` or `pii` rule whose model
+  gives no answer does not match unless it sets `on_unknown: match`; text the
+  model could not read counts as an attack or as personal data.
+- **Masking covers the final request.** The `masking` plugin replaces personal
+  data in every text position of the provider-bound request, including
+  retrieved documents and tool results, and fails closed when it cannot get
+  spans.
+- **Router-owned headers are protected.** `header_mutation` cannot write
+  Router-owned headers or the route key, internal headers a client sends are
+  dropped, and debug detail reaches only the callers
+  `global.router.headers.debug` allows.
+- **Authorization is a signal.** `role_bindings` conditions decide who may
+  reach which route and tools, from identity the gateway asserts; client-sent
+  identity headers are trusted only with `identity.trust_headers: true`.
+
 ## Limit container-runtime access
 
 `vllm-sr serve` is the only part of the local stack that uses the container

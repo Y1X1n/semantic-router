@@ -109,7 +109,7 @@ global:
 Configure providers, model cards, routing signals, and decisions in the normal
 router config. The MCP server supplies classification; it does not replace the
 rest of the routing policy. See the
-[domain signal guide](../../../../website/docs/tutorials/signal/learned/domain.md)
+[domain signal guide](../../../../website/docs/tutorials/signal/application/domain.md)
 for the user-facing configuration model.
 
 ## Validate

@@ -33,7 +33,7 @@ translation:
 | `primary` | CPU 上的 `vllm-sr/vela3-fast` | `system.decision_model` |
 | `vela-embedding` | Vela 1.0 Embedding | `embeddings.default` |
 
-Embedding 只用于召回：响应缓存、记忆或向量库用 `vela-embedding` 召回时它才启动，决策从不使用它。
+嵌入只用于召回：响应缓存、记忆或向量库用 `vela-embedding` 召回时它才启动，决策从不使用它（见[嵌入](../model-runtime/guides/embeddings.md)）。
 
 ## 字段参考 {#field-reference}
 

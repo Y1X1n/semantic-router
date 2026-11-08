@@ -105875,7 +105875,7 @@ const builtInCatalogJSON = `{
         "multimodal"
       ],
       "verification": {
-        "asset_sha256": "sha256:c713202102213ea487cfabbb55d269045553ae1b0e1d88eaf01df015caf88d60",
+        "asset_sha256": "sha256:6e82c7c9640982f21fc200a8100ee6887040f5944326ce3e13ddcaf839adb087",
         "authority": "vllm-sr-maintainers",
         "status": "claimed"
       }
@@ -105965,7 +105965,7 @@ const builtInCatalogJSON = `{
         "tools"
       ],
       "verification": {
-        "asset_sha256": "sha256:c713202102213ea487cfabbb55d269045553ae1b0e1d88eaf01df015caf88d60",
+        "asset_sha256": "sha256:6e82c7c9640982f21fc200a8100ee6887040f5944326ce3e13ddcaf839adb087",
         "authority": "vllm-sr-maintainers",
         "status": "claimed"
       }
@@ -106058,7 +106058,7 @@ const builtInCatalogJSON = `{
         "multimodal"
       ],
       "verification": {
-        "asset_sha256": "sha256:c713202102213ea487cfabbb55d269045553ae1b0e1d88eaf01df015caf88d60",
+        "asset_sha256": "sha256:6e82c7c9640982f21fc200a8100ee6887040f5944326ce3e13ddcaf839adb087",
         "authority": "vllm-sr-maintainers",
         "status": "claimed"
       }
@@ -106170,7 +106170,7 @@ const builtInCatalogJSON = `{
         "orchestration"
       ],
       "verification": {
-        "asset_sha256": "sha256:c713202102213ea487cfabbb55d269045553ae1b0e1d88eaf01df015caf88d60",
+        "asset_sha256": "sha256:6e82c7c9640982f21fc200a8100ee6887040f5944326ce3e13ddcaf839adb087",
         "authority": "vllm-sr-maintainers",
         "status": "claimed"
       }
@@ -106240,7 +106240,7 @@ const builtInCatalogJSON = `{
         "private_deployment"
       ],
       "verification": {
-        "asset_sha256": "sha256:c713202102213ea487cfabbb55d269045553ae1b0e1d88eaf01df015caf88d60",
+        "asset_sha256": "sha256:6e82c7c9640982f21fc200a8100ee6887040f5944326ce3e13ddcaf839adb087",
         "authority": "vllm-sr-maintainers",
         "status": "claimed"
       }

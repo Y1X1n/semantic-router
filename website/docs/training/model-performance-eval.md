@@ -212,4 +212,3 @@ See [Benchmarking](../benchmarking/overview) for the available suites.
 
 - [`src/training/model_eval`](https://github.com/vllm-project/semantic-router/tree/main/src/training/model_eval)
 - [Model training overview](./training-overview)
-- [Current model catalog](./model-catalog)

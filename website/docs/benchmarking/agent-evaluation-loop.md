@@ -175,9 +175,9 @@ retrieval coverage, ranking, grounded answers, and added latency. Preview select
 the plugin; a routed request executes it. Start with a single-model path before
 adding retrieval to every stage of a multi-model workflow.
 
-**Risk handling.** [Guard](../tutorials/signal/learned/jailbreak) detects prompt
-attacks; [Safety and Hazard](../tutorials/signal/learned/safety) identify content
-risks and categories. Test harmful facilitation against help-seeking and benign
+**Risk handling.** [Jailbreak](../tutorials/signal/application/jailbreak) detects prompt
+attacks; [Safety](../tutorials/signal/application/safety) identifies content
+risks and harm categories. Test harmful facilitation against help-seeking and benign
 analysis before choosing refusal rules. PII can select a restricted model pool;
 it does not redact content or establish a provider's retention policy.
 
