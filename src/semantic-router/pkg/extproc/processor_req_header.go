@@ -24,6 +24,9 @@ func (r *OpenAIRouter) handleRequestHeaders(v *ext_proc.ProcessingRequest_Reques
 	// The skip-processing opt-out would bypass a listener's model allow-list,
 	// so a restricted listener does not honor it.
 	method, path := captureRequestHeaders(v, ctx, r.skipProcessingEnabled() && ctx.ListenerModels == nil)
+	if r.Config != nil {
+		ctx.sessionIDHeaders = r.Config.Headers.SessionIDHeaderNames()
+	}
 	r.gateDebugHeaders(ctx)
 	setRequestHeaderSpanAttributes(span, ctx, method, path)
 	if rejected := r.benchmarkConfigPrecondition(ctx); rejected != nil {
@@ -49,7 +52,6 @@ func (r *OpenAIRouter) handleRequestHeaders(v *ext_proc.ProcessingRequest_Reques
 	if ctx.SkipProcessing {
 		detectStreamingExpectation(ctx)
 		mutation := buildLooperInternalHeaderRemovalMutation()
-		mutation.RemoveHeaders = append(mutation.RemoveHeaders, headers.SelectedModel)
 		mutation.RemoveHeaders = append(mutation.RemoveHeaders, r.protectionReleaseHeaderForRemoval()...)
 		// Per-user keys reach a provider only as its credential, which a
 		// skipped request never gets.
@@ -58,10 +60,10 @@ func (r *OpenAIRouter) handleRequestHeaders(v *ext_proc.ProcessingRequest_Reques
 			mutation.RemoveHeaders = append(mutation.RemoveHeaders, azureAPIKeyHeader)
 		}
 		response := newContinueRequestHeadersResponse(mutation)
-		if headerValueCI(ctx, headers.SelectedModel) != "" {
-			// A caller-supplied selected-model header may have selected a provider
-			// route before ext_proc ran. Skip-processing does not materialize a
-			// provider path, so remove the untrusted selector and re-evaluate onto
+		if requestCarriesHeader(v, headers.VSRRouteModel) {
+			// A caller-supplied route key may have selected a provider route
+			// before ext_proc ran. Skip-processing does not materialize a
+			// provider path, so remove the untrusted key and re-evaluate onto
 			// the default route, which owns the ingress path-prefix rewrite.
 			response.GetRequestHeaders().GetResponse().ClearRouteCache = true
 		}
@@ -213,6 +215,17 @@ func detectStreamingExpectation(ctx *RequestContext) {
 			"source":     "accept_header",
 		})
 	}
+}
+
+// requestCarriesHeader reports whether the client's request carried name,
+// which markLooperHop may since have dropped from the context.
+func requestCarriesHeader(v *ext_proc.ProcessingRequest_RequestHeaders, name string) bool {
+	for _, header := range v.RequestHeaders.GetHeaders().GetHeaders() {
+		if strings.EqualFold(header.GetKey(), name) && extractHeaderValue(header) != "" {
+			return true
+		}
+	}
+	return false
 }
 
 func extractHeaderValue(header interface {

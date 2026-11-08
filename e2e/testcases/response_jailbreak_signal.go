@@ -72,7 +72,7 @@ func testResponseJailbreakStreamingPassthrough(ctx context.Context, client *kube
 		return fmt.Errorf("read stream: %w", err)
 	}
 	content, frames := chatStreamedContent(streamBody)
-	warnings := resp.Header.Get(responseWarningsHeader)
+	warnings := resp.Header.Get(warningsHeader)
 
 	scoredAfter, err := readSignalExtractionCount(ctx, metricsSession, "jailbreak", responseJailbreakSignalRule)
 	if err != nil {
@@ -106,7 +106,7 @@ func testResponseJailbreakStreamingPassthrough(ctx context.Context, client *kube
 	}
 	if strings.Contains(warnings, responseJailbreakWarningCode) {
 		return fmt.Errorf("a streamed response carried %s = %q; the bytes were already delivered, so the plugin cannot have acted on the detection",
-			responseWarningsHeader, warnings)
+			warningsHeader, warnings)
 	}
 
 	return nil

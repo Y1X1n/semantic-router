@@ -217,8 +217,8 @@ func TestFallbackSuccessOn503(t *testing.T) {
 		t.Errorf("header %s = %q, want %q", headers.VSRSelectedModel, got, "model-fallback-1")
 	}
 
-	if got := headersMap[headers.VSRFallbackAttempts]; got != "2" {
-		t.Errorf("header %s = %q, want %q", headers.VSRFallbackAttempts, got, "2")
+	if got := fallbackTrace(t, resp, ctx)[headers.TraceFallbackAttempts]; got != "2" {
+		t.Errorf("header %s = %q, want %q", headers.TraceFallbackAttempts, got, "2")
 	}
 
 	if got := headersMap[headers.VSRResponsePath]; got != headers.ResponsePathFallback {
@@ -915,8 +915,8 @@ func TestFallbackTriggeredInHandleResponseHeaders(t *testing.T) {
 	if got := headersMap[headers.VSRSelectedModel]; got != "model-fallback-1" {
 		t.Errorf("header %s = %q, want %q", headers.VSRSelectedModel, got, "model-fallback-1")
 	}
-	if got := headersMap[headers.VSRFallbackAttempts]; got != "2" {
-		t.Errorf("header %s = %q, want %q", headers.VSRFallbackAttempts, got, "2")
+	if got := fallbackTrace(t, resp, ctx)[headers.TraceFallbackAttempts]; got != "2" {
+		t.Errorf("header %s = %q, want %q", headers.TraceFallbackAttempts, got, "2")
 	}
 	if got := headersMap[headers.VSRResponsePath]; got != headers.ResponsePathFallback {
 		t.Errorf("header %s = %q, want %q", headers.VSRResponsePath, got, headers.ResponsePathFallback)
@@ -1061,7 +1061,7 @@ func TestFallbackPreservesStreamingContractOpenAI(t *testing.T) {
 	if got := headersMap[headers.VSRSelectedModel]; got != "model-fallback-1" {
 		t.Errorf("expected model %q, got %q", "model-fallback-1", got)
 	}
-	if got := headersMap[headers.VSRFallbackAttempts]; got != "2" {
+	if got := fallbackTrace(t, resp, ctx)[headers.TraceFallbackAttempts]; got != "2" {
 		t.Errorf("expected 2 attempts, got %q", got)
 	}
 
@@ -2604,9 +2604,9 @@ func TestFallbackResponsePolicyJailbreakWarningAndMemorySuppression(t *testing.T
 	for _, opt := range imm.GetHeaders().GetSetHeaders() {
 		headersMap[opt.GetHeader().GetKey()] = string(opt.GetHeader().GetRawValue())
 	}
-	warningsHeader := headersMap[headers.VSRResponseWarnings]
-	if !strings.Contains(warningsHeader, headers.ResponseWarningJailbreak) {
-		t.Errorf("expected warning header %s to contain %s, got: %s", headers.VSRResponseWarnings, headers.ResponseWarningJailbreak, warningsHeader)
+	warningsHeader := headersMap[headers.VSRWarnings]
+	if !strings.Contains(warningsHeader, headers.WarningJailbreak) {
+		t.Errorf("expected warning header %s to contain %s, got: %s", headers.VSRWarnings, headers.WarningJailbreak, warningsHeader)
 	}
 
 	// Verify memory suppression: suppressedResponseMemoryStore reports policy_blocked / response_jailbreak
@@ -2694,9 +2694,9 @@ func TestFallbackResponsePolicyHallucinationWarning(t *testing.T) {
 	for _, opt := range imm.GetHeaders().GetSetHeaders() {
 		headersMap[opt.GetHeader().GetKey()] = string(opt.GetHeader().GetRawValue())
 	}
-	warningsHeader := headersMap[headers.VSRResponseWarnings]
-	if !strings.Contains(warningsHeader, headers.ResponseWarningUnverifiedFactual) {
-		t.Errorf("expected warning header %s to contain %s, got: %s", headers.VSRResponseWarnings, headers.ResponseWarningUnverifiedFactual, warningsHeader)
+	warningsHeader := headersMap[headers.VSRWarnings]
+	if !strings.Contains(warningsHeader, headers.WarningUnverifiedFactual) {
+		t.Errorf("expected warning header %s to contain %s, got: %s", headers.VSRWarnings, headers.WarningUnverifiedFactual, warningsHeader)
 	}
 }
 
@@ -3527,8 +3527,8 @@ func TestFallbackCandidateMalformed2xxAdvancesToNextCandidate(t *testing.T) {
 	if got := headersMap[headers.VSRSelectedModel]; got != "model-fallback-2" {
 		t.Errorf("header %s = %q, want %q", headers.VSRSelectedModel, got, "model-fallback-2")
 	}
-	if got := headersMap[headers.VSRFallbackAttempts]; got != "3" {
-		t.Errorf("header %s = %q, want %q", headers.VSRFallbackAttempts, got, "3")
+	if got := fallbackTrace(t, resp, ctx)[headers.TraceFallbackAttempts]; got != "3" {
+		t.Errorf("header %s = %q, want %q", headers.TraceFallbackAttempts, got, "3")
 	}
 
 	if ctx.FallbackRecord == nil {
@@ -3649,8 +3649,8 @@ func TestFallbackRecomputesAutomaticOutputAllowanceForCandidate(t *testing.T) {
 	for _, h := range imm.GetHeaders().GetSetHeaders() {
 		headersMap[h.GetHeader().GetKey()] = string(h.GetHeader().GetRawValue())
 	}
-	require.Equal(t, "32749", headersMap[headers.VSREffectiveMaxOutputTokens])
-	require.Equal(t, "19", headersMap[headers.VSREffectiveInputTokens])
+	require.Equal(t, "32749", fallbackTrace(t, resp, ctx)[headers.TraceEffectiveMaxOutputTokens])
+	require.Equal(t, "19", fallbackTrace(t, resp, ctx)[headers.TraceEffectiveInputTokens])
 	require.Equal(t, "narrow", headersMap[headers.VSRSelectedModel])
 
 	// RequestContext updated with fallback candidate facts
@@ -3750,7 +3750,7 @@ func TestFallbackAutomaticOutputCandidatesWithDifferentLimits(t *testing.T) {
 	for _, h := range imm.GetHeaders().GetSetHeaders() {
 		headersMap[h.GetHeader().GetKey()] = string(h.GetHeader().GetRawValue())
 	}
-	require.Equal(t, "32749", headersMap[headers.VSREffectiveMaxOutputTokens])
+	require.Equal(t, "32749", fallbackTrace(t, resp, ctx)[headers.TraceEffectiveMaxOutputTokens])
 	require.Equal(t, "narrow", headersMap[headers.VSRSelectedModel])
 }
 
@@ -3967,4 +3967,16 @@ func TestResponsePolicyPersistenceIsDeferredUntilCommit(t *testing.T) {
 	after, ok := recorder.GetRecord(recordID)
 	require.True(t, ok)
 	require.Equal(t, string(body), after.ResponseBody)
+}
+
+// fallbackTrace finishes a fallback answer at the reply boundary for a caller
+// allowed the debug headers and returns its trace.
+func fallbackTrace(t *testing.T, resp *ext_proc.ProcessingResponse, ctx *RequestContext) map[string]string {
+	t.Helper()
+	if ctx.Headers == nil {
+		ctx.Headers = map[string]string{}
+	}
+	ctx.Headers[headers.VSRDebug] = "true"
+	appendRoutedResponseHeaders(resp, ctx)
+	return traceOf(t, resp.GetImmediateResponse().GetHeaders().GetSetHeaders())
 }

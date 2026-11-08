@@ -96,6 +96,20 @@ func TestRegistrySurfacesAgreeWithDirections(t *testing.T) {
 	}
 }
 
+func TestClientsMaySupplyOnlyTheRouterControlHeaders(t *testing.T) {
+	dropped := DroppedFromClients()
+	for _, name := range []string{VSRRouteModel, VSRInternalAuth, VSRKVSourcePod, VSRTrace, VSRSelectedRecipe} {
+		if !slices.Contains(dropped, name) {
+			t.Errorf("DroppedFromClients() leaves out %s", name)
+		}
+	}
+	for _, name := range dropped {
+		if header, _ := Lookup(name); header.Surface == SurfaceControl || !strings.HasPrefix(name, VSRPrefix) {
+			t.Errorf("DroppedFromClients() drops %s, which clients may send", name)
+		}
+	}
+}
+
 func TestLookupIgnoresLetterCase(t *testing.T) {
 	header, ok := Lookup(" X-VSR-Debug ")
 	if !ok || header.Name != VSRDebug {

@@ -68,7 +68,7 @@ recipes:
 | 字段 | 含义 |
 |---|---|
 | `rules[].when` | 按名称引用信号的条件树，写法同 `decisions[].rules`。`direction: response` 的越狱规则、幻觉规则和响应阶段的 `systemone` 规则读取回答；其他信号读取请求。树的节点上不接受 `on_error` 和 `on_unknown`，由守卫的 `on_unknown` 决定。 |
-| `rules[].action` | `block` 以 HTTP 403 拒绝回答；`annotate` 交付回答，并在 `x-vsr-response-warnings` 中写入该规则的警告码；`none` 只记录结果。 |
+| `rules[].action` | `block` 以 HTTP 403 拒绝回答；`annotate` 交付回答，并在 `x-vsr-warnings` 中写入该规则的警告码；`none` 只记录结果。 |
 | `rules[].details` | 配合 `annotate`，在回答开头再写一条说明。幻觉说明会列出不被支持的片段。 |
 | `on_unknown` | 规则读取的响应阶段信号无法读取时（检测器失败或超时、回答没有文本，或没有可对照的依据上下文）该规则怎么做：`block`、`annotate`（默认）或 `none`。 |
 

@@ -301,10 +301,7 @@ func (r *OpenAIRouter) performCacheLookup(
 			"threshold":      threshold,
 			"negation_guard": string(lookupResult.NegationGuard),
 		})
-		// Intermediate cache detail (category, matched keywords, similarity) is
-		// demoted to the x-vsr-debug surface (#2205).
-		cacheCategory, cacheKeywords, cacheSimilarity := cacheDetailForSurface(ctx, categoryName)
-		response := r.createCacheHitResponse(ctx, cachedResponse, cacheCategory, ctx.VSRSelectedDecisionName, cacheKeywords, cacheSimilarity)
+		response := r.createCacheHitResponse(ctx, cachedResponse)
 		r.updateRouterReplayStatus(ctx, 200, ctx.ExpectStreamingResponse)
 		return response, true
 	} else {
@@ -322,10 +319,6 @@ func (r *OpenAIRouter) performCacheLookup(
 func (r *OpenAIRouter) createCacheHitResponse(
 	ctx *RequestContext,
 	cachedResponse []byte,
-	category string,
-	decisionName string,
-	matchedKeywords []string,
-	similarity float32,
 ) *ext_proc.ProcessingResponse {
 	semanticResponse, err := r.decodeCachedClientResponse(cachedResponse, ctx)
 	if err != nil {
@@ -366,17 +359,9 @@ func (r *OpenAIRouter) createCacheHitResponse(
 			return r.createErrorResponse(502, "The cached response is invalid")
 		}
 	}
-	response := http.CreateCacheHitResponseWithBody(
-		responseBody,
-		contentType,
-		category,
-		decisionName,
-		matchedKeywords,
-		similarity,
-	)
+	response := http.CreateCacheHitResponseWithBody(responseBody, contentType)
 	ctx.ImmediateResponseEncoded = true
 	ctx.SemanticResponse = semanticResponse
-	appendRecipeHeaderToImmediateResponse(response, ctx)
 	r.attachRouterReplayResponse(ctx, responseBody, true)
 	return response
 }
@@ -475,15 +460,4 @@ func cacheQueryForContext(ctx *RequestContext) string {
 		return ctx.CacheQuery
 	}
 	return ctx.RequestQuery
-}
-
-// cacheDetailForSurface returns the intermediate cache-hit detail (category,
-// matched keywords, similarity) when the request opted into x-vsr-debug, and
-// empty values otherwise. CreateCacheHitResponse omits the empties, demoting
-// the detail off the lean default surface (#2205).
-func cacheDetailForSurface(ctx *RequestContext, categoryName string) (string, []string, float32) {
-	if !debugHeadersRequested(ctx) {
-		return "", nil, 0
-	}
-	return categoryName, ctx.VSRMatchedKeywords, ctx.VSRCacheSimilarity
 }

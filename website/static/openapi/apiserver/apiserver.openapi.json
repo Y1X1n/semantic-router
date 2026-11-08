@@ -33978,7 +33978,7 @@
             }
           },
           {
-            "name": "x-sr-bench-expected-config-hash",
+            "name": "x-vsr-bench-expected-config-hash",
             "in": "header",
             "description": "Optional lowercase SHA-256 of the active runtime document. Rejects a mismatched generation before evaluating signals.",
             "schema": {

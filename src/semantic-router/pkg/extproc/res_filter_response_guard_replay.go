@@ -128,8 +128,8 @@ func (run *responseGuardRun) replayOutcome(ctx *RequestContext, target string, n
 // signalCodes are the warning codes of a rule that reads a signal type; a
 // rule that reads any other response-stage type writes the guard's code.
 var signalCodes = map[string][]string{
-	config.SignalTypeJailbreak:     {headers.ResponseWarningJailbreak},
-	config.SignalTypeHallucination: {headers.ResponseWarningHallucination, headers.ResponseWarningUnverifiedFactual},
+	config.SignalTypeJailbreak:     {headers.WarningJailbreak},
+	config.SignalTypeHallucination: {headers.WarningHallucination, headers.WarningUnverifiedFactual},
 }
 
 // signalAction is the action of the first guard rule that read a signal of
@@ -137,7 +137,7 @@ var signalCodes = map[string][]string{
 func (run *responseGuardRun) signalAction(signalType string) string {
 	codes, ok := signalCodes[signalType]
 	if !ok {
-		codes = []string{headers.ResponseWarningGuard}
+		codes = []string{headers.WarningGuard}
 	}
 	for _, rule := range run.rules {
 		if rule.action != "" && slices.ContainsFunc(rule.codes, func(code string) bool { return slices.Contains(codes, code) }) {

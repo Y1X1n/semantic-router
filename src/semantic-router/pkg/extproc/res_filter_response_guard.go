@@ -120,7 +120,7 @@ func (ctx *RequestContext) responseInput(answer string) classification.ResponseI
 }
 
 // responseGuardCodes are the codes an annotating rule adds to
-// x-vsr-response-warnings, one per response-stage signal type the rule reads:
+// x-vsr-warnings, one per response-stage signal type the rule reads:
 // hallucination (unverified_factual when the answer could not be checked),
 // response_jailbreak, and response_guard for any other rule.
 func responseGuardCodes(cfg *config.RouterConfig, when config.RuleNode, state decision.RuleState) []string {
@@ -137,14 +137,14 @@ func responseGuardCodes(cfg *config.RouterConfig, when config.RuleNode, state de
 		if cfg.SignalStageOf(signalType, node.Name) != config.SignalStageResponse {
 			return
 		}
-		code := headers.ResponseWarningGuard
+		code := headers.WarningGuard
 		switch {
 		case signalType == config.SignalTypeHallucination && state == decision.RuleUnknown:
-			code = headers.ResponseWarningUnverifiedFactual
+			code = headers.WarningUnverifiedFactual
 		case signalType == config.SignalTypeHallucination:
-			code = headers.ResponseWarningHallucination
+			code = headers.WarningHallucination
 		case signalType == config.SignalTypeJailbreak:
-			code = headers.ResponseWarningJailbreak
+			code = headers.WarningJailbreak
 		}
 		if !slices.Contains(codes, code) {
 			codes = append(codes, code)
@@ -152,7 +152,7 @@ func responseGuardCodes(cfg *config.RouterConfig, when config.RuleNode, state de
 	}
 	walk(&when)
 	if len(codes) == 0 {
-		codes = []string{headers.ResponseWarningGuard}
+		codes = []string{headers.WarningGuard}
 	}
 	return codes
 }
@@ -269,7 +269,7 @@ func (run *responseGuardRun) jailbreakFinding() (matched, unverified bool) {
 		return false, false
 	}
 	for _, rule := range run.rules {
-		if rule.state == decision.RuleUnknown && rule.action != config.ResponseGuardNone && slices.Contains(rule.codes, headers.ResponseWarningJailbreak) {
+		if rule.state == decision.RuleUnknown && rule.action != config.ResponseGuardNone && slices.Contains(rule.codes, headers.WarningJailbreak) {
 			return false, true
 		}
 	}
@@ -281,9 +281,9 @@ func (run *responseGuardRun) jailbreakFinding() (matched, unverified bool) {
 // down hands an attacker a probe for when it is.
 func responseGuardBlockMessage(rule *responseGuardRuleRun) string {
 	switch {
-	case slices.Contains(rule.codes, headers.ResponseWarningJailbreak):
+	case slices.Contains(rule.codes, headers.WarningJailbreak):
 		return "Response blocked: jailbreak content detected in LLM output"
-	case slices.Contains(rule.codes, headers.ResponseWarningHallucination), slices.Contains(rule.codes, headers.ResponseWarningUnverifiedFactual):
+	case slices.Contains(rule.codes, headers.WarningHallucination), slices.Contains(rule.codes, headers.WarningUnverifiedFactual):
 		return "Response blocked: the answer is not supported by its grounding context"
 	}
 	return "Response blocked by the response guard"
@@ -293,11 +293,11 @@ func responseGuardBlockMessage(rule *responseGuardRuleRun) string {
 // head of the answer.
 func (run *responseGuardRun) responseGuardNote(code string) string {
 	switch code {
-	case headers.ResponseWarningHallucination:
+	case headers.WarningHallucination:
 		return hallucinationWarningText(run.observed())
-	case headers.ResponseWarningUnverifiedFactual:
+	case headers.WarningUnverifiedFactual:
 		return "[Unverified Response] This response contains factual claims that could not be verified due to missing context."
-	case headers.ResponseWarningJailbreak:
+	case headers.WarningJailbreak:
 		return "[Safety Warning] This response may contain content that tries to get around safety rules."
 	}
 	return "[Response Warning] A response check flagged this response."

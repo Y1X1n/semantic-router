@@ -21,7 +21,7 @@ func TestIsSensitiveHeaderKey(t *testing.T) {
 		}
 	}
 	notSensitive := []string{
-		"content-length", "x-selected-model", "x-vsr-destination-endpoint",
+		"content-length", "x-vsr-route-model", "x-vsr-destination-endpoint",
 		"traceparent", "content-type", ":status",
 	}
 	for _, k := range notSensitive {
@@ -50,7 +50,7 @@ func TestRedactProcessingResponseMasksCredentialsAndKeepsOriginal(t *testing.T) 
 	resp := requestBodyResponseWithHeaders(
 		&core.HeaderValueOption{Header: &core.HeaderValue{Key: "Authorization", RawValue: []byte(authCanary)}},
 		&core.HeaderValueOption{Header: &core.HeaderValue{Key: "x-api-key", Value: anthropicCanary}},
-		&core.HeaderValueOption{Header: &core.HeaderValue{Key: "x-selected-model", RawValue: []byte("qwen3-122b")}},
+		&core.HeaderValueOption{Header: &core.HeaderValue{Key: "x-vsr-route-model", RawValue: []byte("qwen3-122b")}},
 	)
 
 	redacted := redactResponseForLog(resp)
@@ -64,7 +64,7 @@ func TestRedactProcessingResponseMasksCredentialsAndKeepsOriginal(t *testing.T) 
 	rm := responseHeaderMutation(redacted)
 	gotAuth := headerValueByKey(rm, "Authorization")
 	gotApiKey := headerValueByKey(rm, "x-api-key")
-	gotModel := headerValueByKey(rm, "x-selected-model")
+	gotModel := headerValueByKey(rm, "x-vsr-route-model")
 	if gotAuth != redactedHeaderValue {
 		t.Errorf("Authorization not redacted: %q", gotAuth)
 	}

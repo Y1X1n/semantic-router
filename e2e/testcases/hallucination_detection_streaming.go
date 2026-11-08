@@ -61,7 +61,7 @@ func testHallucinationStreamingObservation(ctx context.Context, client *kubernet
 		return fmt.Errorf("streaming request failed: %w", err)
 	}
 	content, frames := chatStreamedContent(resp.Body)
-	warnings := resp.Headers.Get(responseWarningsHeader)
+	warnings := resp.Headers.Get(warningsHeader)
 
 	checkedAfter, err := readSignalExtractionCount(ctx, metricsSession, "hallucination", hallucinationRuleName)
 	if err != nil {
@@ -95,7 +95,7 @@ func testHallucinationStreamingObservation(ctx context.Context, client *kubernet
 	}
 	if strings.Contains(warnings, hallucinationWarningCode) {
 		return fmt.Errorf("a streamed answer carried %s = %q; the bytes were already delivered, so the plugin cannot have acted on the detection",
-			responseWarningsHeader, warnings)
+			warningsHeader, warnings)
 	}
 
 	return nil

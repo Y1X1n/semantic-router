@@ -869,9 +869,9 @@ func (r *OpenAIRouter) dispatchFallbackHTTP(
 }
 
 // buildFallbackImmediateResponse constructs the terminal HTTP 200 response. It
-// carries the final routing facts of any routed response, as the native
-// gateway's fallback answer does through the response phases, with the
-// number of attempts it took.
+// carries the public set of any routed response, as the native gateway's
+// fallback answer does through the response phases; the trace counts the
+// attempts it took.
 func (r *OpenAIRouter) buildFallbackImmediateResponse(
 	responseBody []byte,
 	contentType string,
@@ -884,15 +884,8 @@ func (r *OpenAIRouter) buildFallbackImmediateResponse(
 	builder := newResponseHeaderMutationBuilder()
 	builder.addString("content-type", contentType)
 	builder.addKeystone(ctx)
-	addFinalDecisionHeaders(builder, ctx)
-	if ctx != nil && !ctx.SkipProcessing && !ctx.LooperRequest && !ctx.VSRCacheHit && ctx.SemanticRequest != nil {
-		sampling := ctx.SemanticRequest.Sampling
-		if sampling.AutomaticOutput && sampling.AutomaticInputTokens != nil && sampling.MaxOutputTokens != nil &&
-			*sampling.AutomaticInputTokens > 0 && *sampling.MaxOutputTokens > 0 {
-			builder.addString(headers.VSREffectiveInputTokens, strconv.FormatInt(*sampling.AutomaticInputTokens, 10))
-			builder.addString(headers.VSREffectiveMaxOutputTokens, strconv.FormatInt(*sampling.MaxOutputTokens, 10))
-		}
-	}
+	builder.addPublicRoutingHeaders(ctx)
+	builder.addWarnings(ctx)
 	setHeaders := builder.setHeaders
 	if len(extraHeaders) > 0 {
 		setHeaders = append(setHeaders, extraHeaders...)

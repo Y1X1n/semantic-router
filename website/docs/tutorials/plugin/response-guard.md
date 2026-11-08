@@ -71,7 +71,7 @@ recipes:
 | Field | Meaning |
 |---|---|
 | `rules[].when` | A condition tree over named signals, as in `decisions[].rules`. Jailbreak rules with `direction: response`, hallucination rules and response-stage `systemone` rules read the answer; every other signal reads the request. `on_error` and `on_unknown` are not accepted on its nodes: the guard's `on_unknown` decides. |
-| `rules[].action` | `block` refuses the answer with HTTP 403; `annotate` delivers it with the rule's warning codes in `x-vsr-response-warnings`; `none` only records the outcome. |
+| `rules[].action` | `block` refuses the answer with HTTP 403; `annotate` delivers it with the rule's warning codes in `x-vsr-warnings`; `none` only records the outcome. |
 | `rules[].details` | With `annotate`, also writes a note at the head of the answer. The hallucination note names the unsupported spans. |
 | `on_unknown` | What a rule does when a response-stage signal it reads could not be read: the detector failed or timed out, the answer had no text, or there was no grounding context to check it against. `block`, `annotate` (the default) or `none`. |
 

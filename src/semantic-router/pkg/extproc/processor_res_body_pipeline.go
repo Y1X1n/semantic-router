@@ -5,13 +5,11 @@ import (
 	"errors"
 	"slices"
 	"strconv"
-	"strings"
 	"time"
 
 	core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	ext_proc "github.com/envoyproxy/go-control-plane/envoy/service/ext_proc/v3"
 
-	"github.com/vllm-project/semantic-router/src/semantic-router/pkg/config"
 	"github.com/vllm-project/semantic-router/src/semantic-router/pkg/headers"
 	"github.com/vllm-project/semantic-router/src/semantic-router/pkg/llmprotocol"
 	"github.com/vllm-project/semantic-router/src/semantic-router/pkg/observability/logging"
@@ -65,7 +63,7 @@ func (r *OpenAIRouter) handleNonStreamingResponseBody(
 	r.updateResponseCache(ctx, r.cacheableClientResponse(clientBody, rewriteClientBody, *semanticResponse, ctx))
 
 	blocked, finalBody, headerOptions := r.finalizeResponsePolicy(ctx, semanticResponse, clientBody)
-	lateWarning, hasLateDiagnostics := recordBufferedProtocolDiagnostics(ctx, diagnosticsBeforeBody)
+	warnings, hasBufferedWarnings := bufferedWarnings(ctx)
 	if blocked != nil {
 		return blocked
 	}
@@ -76,8 +74,8 @@ func (r *OpenAIRouter) handleNonStreamingResponseBody(
 			SetHeaders: headerOptions,
 		}
 	}
-	if hasLateDiagnostics {
-		setResponseBodyHeaderOverwrite(response, headers.VSRProtocolWarnings, lateWarning)
+	if hasBufferedWarnings {
+		setResponseBodyHeaderOverwrite(response, headers.VSRWarnings, warnings)
 	}
 	if (rewriteClientBody || !bytes.Equal(finalBody, clientBody)) && response.GetResponseBody().GetResponse().GetBodyMutation() == nil {
 		setResponseBodyMutation(response, finalBody)
@@ -214,10 +212,7 @@ func (r *OpenAIRouter) applySemanticResponseWarnings(
 ) (*ext_proc.ProcessingResponse, []byte) {
 	response := buildResponseBodyContinueResponse(nil, nil)
 	changed := r.applyResponseGuardNotes(ctx.ResponseGuard, semanticResponse)
-	if codes := ctx.ResponseGuard.warnings(); len(codes) > 0 {
-		setResponseWarningsHeader(response, codes)
-	}
-	addResponseStageSignalHeaders(ctx, response)
+	addResponseStageTrace(ctx, response)
 	if !changed {
 		return response, originalBody
 	}
@@ -239,37 +234,18 @@ func (r *OpenAIRouter) applySemanticResponseWarnings(
 	return response, encoded
 }
 
-// addResponseStageSignalHeaders writes the response-stage matches the guard
-// read in the body phase: x-vsr-matched-jailbreak and
-// x-vsr-matched-systemone are rewritten with them after the request-stage
-// ones, and x-vsr-matched-hallucination is written once the answer has been
-// checked. The response headers phase wrote the request-stage matches before
-// the body existed, so the debug headers would otherwise never show a
-// response-stage match. Same gate as the request-stage signal headers: only
-// when debug is requested.
-func addResponseStageSignalHeaders(ctx *RequestContext, response *ext_proc.ProcessingResponse) {
-	if ctx == nil || !debugHeadersRequested(ctx) {
-		return
-	}
+// addResponseStageTrace rewrites x-vsr-trace once the guard has read the
+// answer, so its signals include the response-stage matches: the response
+// headers phase wrote the trace before the body existed. Only for a caller
+// allowed the debug headers, and only when the guard matched a rule.
+func addResponseStageTrace(ctx *RequestContext, response *ext_proc.ProcessingResponse) {
 	observed := ctx.ResponseGuard.observed()
-	if observed == nil {
+	if observed == nil || len(observed.Reported) == 0 {
 		return
 	}
-	if matched := observed.Reported[config.SignalTypeJailbreak]; len(matched) > 0 {
-		setResponseBodyHeader(response, headers.VSRMatchedJailbreak, strings.Join(append(slices.Clone(ctx.VSRMatchedJailbreak), matched...), ","))
+	if trace := responseTrace(ctx); trace != "" {
+		setResponseBodyHeaderOverwrite(response, headers.VSRTrace, trace)
 	}
-	if matched := observed.Reported[config.SignalTypeHallucination]; len(matched) > 0 {
-		setResponseBodyHeader(response, headers.VSRMatchedHallucination, strings.Join(matched, ","))
-	}
-	if matched := observed.Reported[config.SignalTypeSystemOne]; len(matched) > 0 {
-		setResponseBodyHeader(response, headers.VSRMatchedDecisionModel, strings.Join(append(slices.Clone(ctx.VSRMatchedDecisionModel), matched...), ","))
-	}
-}
-
-// setResponseWarningsHeader writes the consolidated x-vsr-response-warnings header
-// (comma-separated codes) onto the response, merging with any existing mutation.
-func setResponseWarningsHeader(response *ext_proc.ProcessingResponse, codes []string) {
-	setResponseBodyHeader(response, headers.VSRResponseWarnings, strings.Join(codes, ","))
 }
 
 // addResponseCostHeaders reports the priced cost of a buffered response. A
