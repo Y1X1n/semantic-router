@@ -353,9 +353,6 @@ type ModelCardOverlay struct {
 	Tags              *[]string                  `json:"tags,omitempty" yaml:"tags,omitempty"`
 	LoRAs             *[]LoRAAdapter             `json:"loras,omitempty" yaml:"loras,omitempty"`
 	Verification      *ModelVerification         `json:"verification,omitempty" yaml:"verification,omitempty"`
-	// RuntimeModality preserves the existing router-specific ar/diffusion/omni
-	// classification while canonical model facts use input/output modalities.
-	RuntimeModality *string `json:"-" yaml:"-"`
 }
 
 // EvaluationConfig is the optional operator extension surface.
@@ -538,10 +535,9 @@ type IndexResult struct {
 type FieldProvenance map[string]string
 
 type EffectiveModelCard struct {
-	Card            ModelCard       `json:"card"`
-	LoRAs           []LoRAAdapter   `json:"loras,omitempty"`
-	Provenance      FieldProvenance `json:"provenance"`
-	RuntimeModality string          `json:"runtime_modality,omitempty"`
+	Card       ModelCard       `json:"card"`
+	LoRAs      []LoRAAdapter   `json:"loras,omitempty"`
+	Provenance FieldProvenance `json:"provenance"`
 }
 
 type EffectiveProvider struct {

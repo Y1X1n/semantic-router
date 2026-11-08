@@ -58,7 +58,6 @@ def _model_card(name: str) -> dict:
                 "metrics": {"score": 0.7},
             }
         ],
-        "modality": "ar",
         "tags": ["bench", "ollama"],
     }
 

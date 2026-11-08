@@ -135,7 +135,6 @@ const QUICK_START_SNIPPET = `# ============================================
 # ============================================
 
 MODEL "qwen2.5:3b" {
-  modality: "text"
   capabilities: ["general", "reasoning"]
 }
 
@@ -193,8 +192,8 @@ ROUTE ai_route (description = "AI-related requests") {
 
 const MODEL_SNIPPET = `MODEL "qwen2.5:3b" {
   param_size: "3b"
-  modality: "text"
   capabilities: ["general", "reasoning"]
+  modalities: { input: ["text", "image"], output: ["text"] }
 }`
 
 const SIGNAL_SNIPPET = `SIGNAL keyword my_signal {
@@ -312,7 +311,7 @@ const DslGuide: React.FC<DslGuideProps> = ({ onInsertSnippet }) => {
       )}
 
       {/* Models */}
-      {matchesSearch('model catalog reasoning family capability modality') && (
+      {matchesSearch('model catalog reasoning family capability modalities') && (
         <Section title="Model Catalog" icon="📦">
           <p className={styles.hint}>
             Top-level models define the semantic routing catalog. Syntax:{' '}
@@ -359,11 +358,12 @@ const DslGuide: React.FC<DslGuideProps> = ({ onInsertSnippet }) => {
               </tr>
               <tr>
                 <td>
-                  <code>modality</code>
+                  <code>modalities</code>
                 </td>
-                <td>string</td>
+                <td>object</td>
                 <td>
-                  Expected modality such as <code>text</code> or <code>image</code>
+                  What the model reads and writes, such as{' '}
+                  <code>{'{ input: ["text", "image"], output: ["text"] }'}</code>
                 </td>
               </tr>
             </tbody>

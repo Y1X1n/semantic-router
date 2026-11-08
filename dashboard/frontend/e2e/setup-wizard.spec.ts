@@ -32,8 +32,8 @@ const importedConfig = {
   },
   routing: {
     modelCards: [
-      { name: "remote-model-primary", modality: "text" },
-      { name: "remote-model-backup", modality: "text" },
+      { name: "remote-model-primary" },
+      { name: "remote-model-backup" },
     ],
     signals: {
       domains: [{ name: "remote-domain-a" }, { name: "remote-domain-b" }],
