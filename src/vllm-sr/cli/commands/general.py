@@ -163,26 +163,17 @@ def config_schema(
     is_flag=True,
     help="Overwrite the output file if it already exists.",
 )
-@click.option(
-    "--offline",
-    is_flag=True,
-    help="Check the output with only the CLI's structural checks, without the Router's validation.",
-)
 @exit_with_logged_error(log)
-def config_migrate(
-    config_path: str, output: str | None, force: bool, offline: bool
-) -> None:
-    """Migrate a legacy or mixed config file to canonical v0.5 YAML.
+def config_migrate(config_path: str, output: str | None, force: bool) -> None:
+    """Migrate a config file to canonical v0.5 YAML.
 
-    The output is written only when the Router's own validation accepts it: a
-    local Router binary ($VLLM_SR_ROUTER_BINARY) or the Router in its local
-    image. With --offline, or when no Router can run, only the CLI's
-    structural checks run.
+    The Router rewrites the file: a local Router binary
+    ($VLLM_SR_ROUTER_BINARY) or the Router in its local image. The output is
+    written only when the CLI's structural checks and the Router's own
+    validation accept it.
     """
 
-    migrate_config_command(
-        config_path=config_path, output_path=output, force=force, offline=offline
-    )
+    migrate_config_command(config_path=config_path, output_path=output, force=force)
 
 
 @config.command("propose")

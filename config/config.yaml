@@ -2755,41 +2755,24 @@ global:
           question_types: [choice, noul, score]
           presets: [pii, halu]
           modalities: [text, image, video]
-      # A chat model: POST <endpoint>/chat/completions. generation sets
-      # max_tokens and temperature of its completions.
-      openai-classifier:
-        provider: openai_chat
-        endpoint: https://openai-proxy:443/v1
-        model: gpt-4.1-mini
-        auth:
-          api_key_env: OPENAI_CLASSIFIER_API_KEY
-        timeout_ms: 15000
-        generation:
-          max_tokens: 128
-          temperature: 0
-      # A chat model asked with reasoning off: generation.reasoning names a
+      # A chat model: POST <endpoint>/chat/completions. limits bounds the
+      # request and response bodies; generation sets the max_tokens and
+      # temperature of its completions, and generation.reasoning names a
       # built-in reasoning family.
       memory-rewriter:
         provider: openai_chat
         endpoint: http://memory-rewriter:8000/v1
         model: qwen3
         timeout_ms: 5000
-        generation:
-          max_tokens: 256
-          reasoning:
-            family: qwen3
-            use_reasoning: false
-      # A classifier service speaking the Router's classification API: POST
-      # <endpoint>/classify. limits bounds the request and response bodies.
-      sequence-classifier:
-        provider: classify
-        endpoint: http://sequence-classifier:8080
-        auth:
-          api_key_env: SEQUENCE_CLASSIFIER_API_KEY
-        timeout_ms: 5000
         limits:
           max_request_bytes: 262144
           max_response_bytes: 1048576
+        generation:
+          max_tokens: 256
+          temperature: 0
+          reasoning:
+            family: qwen3
+            use_reasoning: false
       # A remote embedding model: POST <endpoint>/embeddings. Name it in
       # embeddings.default to embed with it; max_retries retries transport
       # failures within the caller's deadline.

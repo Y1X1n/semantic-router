@@ -11,12 +11,6 @@ import (
 // CanonicalConfigFromRouterConfig exports the canonical v0.5 config surface
 // from the internal runtime config.
 func CanonicalConfigFromRouterConfig(cfg *RouterConfig) CanonicalConfig {
-	doc := exportedCanonicalConfig(cfg)
-	canonicalizeRuleBindings(&doc)
-	return doc
-}
-
-func exportedCanonicalConfig(cfg *RouterConfig) CanonicalConfig {
 	if cfg == nil {
 		return CanonicalConfig{Version: CanonicalConfigVersion}
 	}
@@ -42,7 +36,7 @@ func exportedCanonicalConfig(cfg *RouterConfig) CanonicalConfig {
 // by K8s CRD reconciliation. Dynamic routing state is expected to come from the
 // CRDs, so recipes and entrypoints are left empty.
 func CanonicalStaticConfigFromRouterConfig(cfg *RouterConfig) CanonicalConfig {
-	canonical := exportedCanonicalConfig(cfg)
+	canonical := CanonicalConfigFromRouterConfig(cfg)
 	canonical.Entrypoints = nil
 	canonical.Recipes = nil
 	return canonical
@@ -154,11 +148,10 @@ func CanonicalGlobalFromRouterConfig(cfg *RouterConfig) *CanonicalGlobal {
 
 func canonicalModelCatalogFromRouterConfig(cfg *RouterConfig) CanonicalModelCatalog {
 	return CanonicalModelCatalog{
-		Deployments:     canonicalDeployments(cfg.ModelDeployments),
-		Bindings:        publicBindings(cfg.GlobalModelBindings),
+		Deployments:     cloneModelMap(cfg.ModelDeployments),
+		Bindings:        cloneModelMap(cfg.GlobalModelBindings),
 		Embeddings:      CanonicalEmbeddingModels{Default: EmbeddingModelBinding{Deployment: cfg.EmbeddingDeployment}},
 		System:          canonicalSystemModelsFromRouterConfig(cfg),
-		External:        append([]ExternalModelConfig(nil), cfg.ExternalModels...),
 		Admission:       cloneAdmissionMap(cfg.ModelAdmission),
 		SignalTimeoutMs: cfg.ModelSignalTimeoutMs,
 		Modules:         CanonicalModelModules{PromptCompression: cfg.PromptCompression},
@@ -241,9 +234,6 @@ func canonicalProviderModelFromRuntime(
 ) CanonicalProviderModel {
 	if authored := cloneCanonicalProviderModel(params.AuthoredModel); authored != nil {
 		authored.Name = name
-		for i := range authored.BackendRefs {
-			authored.BackendRefs[i] = authored.BackendRefs[i].canonicalConnection()
-		}
 		return *authored
 	}
 	providerModel := CanonicalProviderModel{
@@ -311,7 +301,7 @@ func cloneCanonicalProviderModel(model *CanonicalProviderModel) *CanonicalProvid
 	clone.BackendRefs = make([]CanonicalBackendRef, len(model.BackendRefs))
 	for index, backend := range model.BackendRefs {
 		clone.BackendRefs[index] = backend
-		clone.BackendRefs[index].ExtraHeaders = copyStringMap(backend.ExtraHeaders)
+		clone.BackendRefs[index].Headers = copyStringMap(backend.Headers)
 	}
 	return &clone
 }
@@ -397,10 +387,6 @@ func canonicalBackendRefFromRuntime(modelName string, endpoint VLLMEndpoint, fal
 	}
 	if ref.APIKey == "" {
 		ref.APIKey = fallbackAPIKey
-	}
-	if ref.APIKey != "" && ref.Auth != nil {
-		// A key the configuration wrote inline stays where it was written.
-		ref.AuthHeader, ref.AuthPrefix, ref.Auth = ref.Auth.Header, ref.Auth.Prefix, nil
 	}
 	if len(profile.ExtraHeaders) > 0 {
 		ref.Headers = copyStringMap(profile.ExtraHeaders)

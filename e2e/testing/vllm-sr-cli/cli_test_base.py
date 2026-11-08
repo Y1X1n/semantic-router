@@ -392,7 +392,6 @@ class CLITestBase(unittest.TestCase):
         port: int = 8888,
         model_name: str = "test-model",
         endpoint: str = "host.docker.internal:8000",
-        base_url: str | None = None,
         provider: str | None = "vllm",
         api_key_env: str | None = None,
         api_only: bool = False,
@@ -402,23 +401,22 @@ class CLITestBase(unittest.TestCase):
     ) -> str:
         """Write a minimal runnable canonical v0.5 config into the temp workspace.
 
-        *managed_storage* asks for the service backends this CLI provisions
-        locally, which is what makes `serve` start Redis and Postgres.
+        *endpoint* is host:port over http, or a full URL. *managed_storage*
+        asks for the service backends this CLI provisions locally, which is
+        what makes `serve` start Redis and Postgres.
         """
         config_path = Path(self.test_dir) / "config.yaml"
         backend_ref: dict[str, object] = {
             "name": "primary",
             "weight": 100,
+            "endpoint": endpoint,
         }
-        if base_url is not None:
-            backend_ref["base_url"] = base_url
-        else:
-            backend_ref["endpoint"] = endpoint
+        if "://" not in endpoint:
             backend_ref["protocol"] = "http"
         if provider is not None:
             backend_ref["provider"] = provider
         if api_key_env is not None:
-            backend_ref["api_key_env"] = api_key_env
+            backend_ref["auth"] = {"api_key_env": api_key_env}
 
         decision: dict[str, object] = {
             "name": "default-route",

@@ -16,12 +16,6 @@ const (
 	ConfigSourceKubernetes ConfigSource = "kubernetes"
 )
 
-// Model role constants for external models.
-const (
-	ModelRoleMemoryRewrite    = "memory_rewrite"
-	ModelRoleMemoryExtraction = "memory_extraction"
-)
-
 // Signal type constants for rule conditions.
 const (
 	SignalTypeKeyword       = "keyword"
@@ -77,7 +71,6 @@ type RouterConfig struct {
 	// Static global configuration.
 	RoutingDefaults  RoutingDefaults `yaml:"-" json:"-"`
 	InlineModels     `yaml:",inline"`
-	ExternalModels   []ExternalModelConfig `yaml:"external_models,omitempty"`
 	SemanticCache    `yaml:"semantic_cache"`
 	Memory           MemoryConfig            `yaml:"memory"`
 	VectorStore      *VectorStoreConfig      `yaml:"vector_store,omitempty"`
@@ -286,19 +279,10 @@ type InlineModels struct {
 	// EmbeddingDeployment is global.model_catalog.embeddings.default's
 	// deployment.
 	EmbeddingDeployment string `yaml:"embedding_deployment,omitempty"`
-	// ModelResourceWarnings are the deprecated model fields the
-	// configuration was read with, and what they were read as.
-	ModelResourceWarnings []ConfigWarning `yaml:"-" json:"-"`
 	// FormWarnings are the renamed forms the document was written in, which
 	// it was read as their canonical forms (config_forms.go).
 	FormWarnings []ConfigWarning `yaml:"-" json:"-"`
 
-	// modelResourcesTranslated is set once deprecated model fields were
-	// read as deployments and bindings (model_resource_translation.go).
-	modelResourcesTranslated bool
-	// modelResourceErrors fail the consumers whose deprecated model names
-	// no model when they run.
-	modelResourceErrors map[string]error
 	// scopedBindings are a recipe scope's own bindings, before the global
 	// ones (ConfigForRecipe); nil outside a recipe scope.
 	scopedBindings map[string]ModelBinding

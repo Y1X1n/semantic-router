@@ -105,7 +105,7 @@ describe('catalog-backed model connection mutations', () => {
           {
             name: 'microsoft-foundry-primary',
             provider: 'microsoft-foundry',
-            base_url: 'https://foundry.example.test',
+            endpoint: 'https://foundry.example.test',
           },
         ],
       },

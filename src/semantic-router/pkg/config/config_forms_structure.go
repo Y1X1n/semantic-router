@@ -52,9 +52,14 @@ var structureForms = []ConfigForm{
 	},
 }
 
+// laterCardFields are card fields that are no model fact but that a later
+// form rewrites on the providers.models[] entry: the modality keyword.
+var laterCardFields = []string{"modality"}
+
 // migrateModelCards merges each card into the providers.models[] entry whose
 // catalog identity it is (its catalog, else its name; one of the same name
-// first). A card no entry names becomes a metadata-only entry.
+// first). One entry declares a card's facts, and every entry of the card's
+// catalog reads them. A card no entry names becomes a metadata-only entry.
 func migrateModelCards(m *Migration, at FormMatch) error {
 	models := ensureSequence(ensureMapping(at.Root, "providers"), "models")
 	loras := map[string]bool{}
@@ -88,7 +93,7 @@ func migrateModelCards(m *Migration, at FormMatch) error {
 			if field == "name" {
 				continue
 			}
-			if !slices.Contains(ModelFactFields(), field) {
+			if !slices.Contains(ModelFactFields(), field) && !slices.Contains(laterCardFields, field) {
 				return fmt.Errorf("model card %s: unknown field %s", name, field)
 			}
 			if mappingValue(entry, field) != nil {

@@ -246,9 +246,7 @@ func assertReferenceConfigModelCatalogCoverage(t testingT, modelCatalog map[stri
 // model_runtime both managed and attached.
 func assertReferenceConfigDeploymentCoverage(t testingT, deployments map[string]interface{}) {
 	items := referenceMapValues(deployments)
-	// external_model, question_types and served_name are the deprecated
-	// spellings of a remote provider, capabilities.question_types and model.
-	assertSliceUnionCoversStructFields(t, items, reflect.TypeOf(ModelDeployment{}), "global.model_catalog.deployments", "external_model", "question_types", "served_name")
+	assertSliceUnionCoversStructFields(t, items, reflect.TypeOf(ModelDeployment{}), "global.model_catalog.deployments")
 	for _, block := range []struct {
 		key string
 		typ reflect.Type
@@ -263,7 +261,7 @@ func assertReferenceConfigDeploymentCoverage(t testingT, deployments map[string]
 	} {
 		assertSliceUnionCoversStructFields(t, collectChildMapsFromSlice(t, items, block.key, "global.model_catalog.deployments"), block.typ, "global.model_catalog.deployments[]."+block.key)
 	}
-	assertSliceUnionCoversStructFields(t, collectNestedSliceItems(t, items, "replicas", "global.model_catalog.deployments"), reflect.TypeOf(ModelReplica{}), "global.model_catalog.deployments[].replicas", "served_name")
+	assertSliceUnionCoversStructFields(t, collectNestedSliceItems(t, items, "replicas", "global.model_catalog.deployments"), reflect.TypeOf(ModelReplica{}), "global.model_catalog.deployments[].replicas")
 
 	providers := map[string]bool{}
 	for _, item := range items {
@@ -276,7 +274,7 @@ func assertReferenceConfigDeploymentCoverage(t testingT, deployments map[string]
 		}
 		providers[provider] = true
 	}
-	for _, provider := range []string{ModelRuntimeProvider, ModelRuntimeProvider + " (attached)", SystemOneProvider, ClassifyProvider, OpenAIChatProvider, OpenAIEmbeddingsProvider} {
+	for _, provider := range []string{ModelRuntimeProvider, ModelRuntimeProvider + " (attached)", SystemOneProvider, OpenAIChatProvider, OpenAIEmbeddingsProvider} {
 		if !providers[provider] {
 			t.Fatalf("global.model_catalog.deployments must declare a %s deployment", provider)
 		}

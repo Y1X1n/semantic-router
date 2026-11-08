@@ -31,8 +31,8 @@ providers:
       provider_model_id: vllm-sr/Decision-2.0-Nox-4B
       backend_refs:
         - provider: systemone-compatible
-          base_url: http://localhost:8900/v1
-          api_key_env: NATIVE_TEST_TOKEN
+          endpoint: http://localhost:8900/v1
+          auth: {api_key_env: NATIVE_TEST_TOKEN}
 global:
   model_catalog:
     deployments:

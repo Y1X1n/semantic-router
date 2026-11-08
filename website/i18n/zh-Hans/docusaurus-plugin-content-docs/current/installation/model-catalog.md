@@ -21,8 +21,7 @@ translation:
 | --- | --- | --- |
 | `model_runtime` | 内置模型运行时：托管（由 Router 启动）或挂接（设置了 `endpoint`） | 其模型卡提供的任何内容 |
 | `systemone` | System One API 的 `POST <endpoint>` 和 `GET <endpoint>/models` | 每个问题类信号和选择器 |
-| `classify` | `POST <endpoint>/classify` | masking、响应 jailbreak 和幻觉检测插件的模型（`pii`、`jailbreak` 和 `hallucination` 绑定） |
-| `openai_chat` | `POST <endpoint>/chat/completions` | 响应 jailbreak 插件的防护模型和幻觉检测插件的检测模型 |
+| `openai_chat` | `POST <endpoint>/chat/completions` | 记忆查询改写（`global.stores.memory.query_rewrite`） |
 | `openai_embeddings` | `POST <endpoint>/embeddings` | Embedding |
 
 部署被分配了它无法回答的信号时，Router 在加载时拒绝该部署。
@@ -60,7 +59,7 @@ global:
         replicas: [{device: cpu}, {endpoint: http://worker-2.example.com:8100, model: kai}]
       # Connection block: an attached model_runtime and every remote provider.
       remote-example:
-        provider: systemone              # or classify, openai_chat, openai_embeddings
+        provider: systemone              # or openai_chat, openai_embeddings
         endpoint: https://api.example.com/v1/systemone  # full URL; unix:///abs.sock for an attached runtime
         model: vllm-sr/d3-ultra          # the remote model; an attached runtime's served model
         auth: {header: Authorization, prefix: Bearer, api_key_env: EXAMPLE_KEY}  # or api_key_file: /abs/path
@@ -96,7 +95,7 @@ global:
 
 | 字段 | 含义 | 限制 |
 | --- | --- | --- |
-| `endpoint` | API 的完整 URL，包括路径前缀。Router 在其后追加操作路径（`/classify`、`/chat/completions`、`/embeddings`）；systemone 的 endpoint 就是提交问题的 URL。挂接的运行时可以使用 `unix:///abs/path.sock` | `http` 或 `https`；不得包含凭据或片段标识（fragment） |
+| `endpoint` | API 的完整 URL，包括路径前缀。Router 在其后追加操作路径（`/chat/completions`、`/embeddings`）；systemone 的 endpoint 就是提交问题的 URL。挂接的运行时可以使用 `unix:///abs/path.sock` | `http` 或 `https`；不得包含凭据或片段标识（fragment） |
 | `model` | 远程 API 用来回答的模型；在挂接的运行时上是它提供服务的模型 | `systemone`、`openai_chat`、`openai_embeddings` 必填 |
 | `auth` | `header`（默认 `Authorization`）、`prefix`（默认 `Bearer`；`""` 表示发送不带前缀的密钥），以及 `api_key_env` 和 `api_key_file`（绝对路径，每次调用时读取，因此轮换后的密钥会生效）二者之一 | 密钥从不写在配置中 |
 | `headers` | 其他非机密请求头 | 拒绝 `Authorization`、`Proxy-Authorization`、`X-Api-Key`、`Api-Key`、`Ocp-Apim-Subscription-Key`、`Cookie` 以及 `auth` 所用的请求头 |

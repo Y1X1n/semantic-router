@@ -15,12 +15,12 @@
 export interface ProviderEndpoint {
   name: string
   weight: number
-  endpoint: string // e.g., "host.docker.internal:8000" or "api.openai.com"
+  endpoint: string // e.g., "host.docker.internal:8000" or "https://api.openai.com/v1"
   protocol: 'http' | 'https'
-  base_url?: string
   provider?: string
   api_key?: string
-  api_key_env?: string
+  auth?: { header?: string; prefix?: string; api_key_env?: string }
+  headers?: Record<string, string>
 }
 
 export interface ProviderModel {

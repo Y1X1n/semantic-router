@@ -45,16 +45,13 @@ func (d ModelDeployment) Managed() bool {
 
 // ServedModel names the model a consumer of the deployment called name runs:
 // its artifact, or, for an attached runtime without one, the model the runtime
-// serves under served_name or the deployment's name.
+// serves under model or the deployment's name.
 func (d ModelDeployment) ServedModel(name string) string {
 	if d.Artifact != "" || !d.IsModelRuntime() || d.Managed() {
 		return d.Artifact
 	}
 	if d.Model != "" {
 		return d.Model
-	}
-	if d.ServedName != "" {
-		return d.ServedName
 	}
 	return name
 }
@@ -69,7 +66,6 @@ func ModelRuntimeDeploymentsInUse(cfg *RouterConfig) map[string]ModelDeployment 
 	if cfg == nil {
 		return used
 	}
-	cfg = cfg.withModelResources()
 	mark := func(name string) {
 		if name == "" {
 			if shared, deployment, ok, err := cfg.DecisionModelDeployment(); ok && err == nil {
@@ -175,9 +171,6 @@ func (c *RouterConfig) consumerScopes() map[RecipeName]*RouterConfig {
 }
 
 func (d ModelDeployment) validateModelRuntime() error {
-	if d.ExternalModel != "" {
-		return fmt.Errorf("model_runtime deployments cannot set external_model")
-	}
 	if d.Input.MaxTokens < 0 {
 		return fmt.Errorf("input.max_tokens must not be negative")
 	}
@@ -229,8 +222,8 @@ func (d ModelDeployment) validateModelRuntime() error {
 // deployment: it applies to its attached endpoints, never to a worker the
 // Router starts.
 func (d ModelDeployment) validateAttachedConnection() error {
-	if d.Capabilities != nil || len(d.QuestionTypes) > 0 {
-		return fmt.Errorf("a model_runtime deployment's capabilities come from its model card; capabilities and question_types apply to remote deployments")
+	if d.Capabilities != nil {
+		return fmt.Errorf("a model_runtime deployment's capabilities come from its model card; capabilities apply to remote deployments")
 	}
 	attached := false
 	var endpoint *url.URL
@@ -253,9 +246,6 @@ func (d ModelDeployment) validateAttachedConnection() error {
 	// bodies; a retry could repeat a batched call.
 	if d.MaxRetries != nil || d.Limits != nil {
 		return fmt.Errorf("max_retries and limits apply to remote providers; an attached model_runtime takes endpoint, model, auth, headers, timeout_ms and tls")
-	}
-	if d.Model != "" && d.ServedName != "" && d.Model != d.ServedName {
-		return fmt.Errorf("model and served_name name the same served model; set one")
 	}
 	if d.TLS != nil && endpoint == nil {
 		return fmt.Errorf("tls applies to an https:// endpoint")

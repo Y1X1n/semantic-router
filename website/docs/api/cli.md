@@ -62,7 +62,7 @@ This reference is generated from the registered CLI commands. Command descriptio
 | [`vllm-sr config envoy`](#vllm-sr-config-envoy) | Print the generated Envoy configuration. |
 | [`vllm-sr config get`](#vllm-sr-config-get) | Read the active canonical configuration from a Router. |
 | [`vllm-sr config init`](#vllm-sr-config-init) | Create a minimal canonical configuration template. |
-| [`vllm-sr config migrate`](#vllm-sr-config-migrate) | Migrate a legacy or mixed config file to canonical v0.5 YAML. |
+| [`vllm-sr config migrate`](#vllm-sr-config-migrate) | Migrate a config file to canonical v0.5 YAML. |
 | [`vllm-sr config plan`](#vllm-sr-config-plan) | Validate and plan an exact remote mutation without changing the Router. |
 | [`vllm-sr config propose`](#vllm-sr-config-propose) | Print a reviewable config proposal. This command does not apply it. |
 | [`vllm-sr config rollback`](#vllm-sr-config-rollback) | Compare-and-swap the active configuration to a recorded version. |
@@ -805,19 +805,18 @@ Create a minimal canonical configuration template.
 Usage: vllm-sr config migrate [OPTIONS]
 ```
 
-Migrate a legacy or mixed config file to canonical v0.5 YAML.
+Migrate a config file to canonical v0.5 YAML.
 
-The output is written only when the Router's own validation accepts it: a
-local Router binary ($VLLM_SR_ROUTER_BINARY) or the Router in its local
-image. With --offline, or when no Router can run, only the CLI's
-structural checks run.
+The Router rewrites the file: a local Router binary
+($VLLM_SR_ROUTER_BINARY) or the Router in its local image. The output is
+written only when the CLI's structural checks and the Router's own
+validation accept it.
 
 | Parameter | Description |
 | --- | --- |
 | `--config TEXT` | Path to source config file (default: config.yaml) Default: config.yaml. |
 | `--output TEXT` | Path for migrated canonical config (default: &lt;config&gt;.migrated.yaml) |
 | `--force` | Overwrite the output file if it already exists. Default: false. |
-| `--offline` | Check the output with only the CLI's structural checks, without the Router's validation. Default: false. |
 | `--help` | Show this message and exit. Default: false. |
 
 ### `vllm-sr config plan` {#vllm-sr-config-plan}

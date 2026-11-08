@@ -104,28 +104,6 @@ describe('router defaults structured schemas', () => {
     expect(patch.router).not.toHaveProperty('auto_model_names')
   })
 
-  it('shows deprecated external models without offering to declare more', () => {
-    const external = [
-      {
-        name: 'external-safety',
-        llm_provider: '',
-        model_role: 'classification',
-        llm_endpoint: { address: 'safety-service', port: 8080, protocol: 'http' },
-      },
-      { name: 'external-hazard', model_role: 'classification' },
-      { name: 'external-classifier', llm_provider: 'openai', model_role: 'classification' },
-    ]
-    const cards = buildRouterSectionCards({
-      config: null,
-      routerConfig: { external_models: external },
-      routerDefaults: null,
-    })
-    const externalModels = cards.find((card) => card.key === 'external_models')!
-
-    expect(externalModels.summary).toContainEqual({ label: 'Configured models', value: '3' })
-    expect(externalModels.deprecation).toMatch(/classify, openai_chat or openai_embeddings/)
-  })
-
   it('round-trips nested provider and rule object arrays', () => {
     const normalized = normalizeRouterStructuredFields('ratelimit', {
       fail_open: false,

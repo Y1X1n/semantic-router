@@ -1,0 +1,16 @@
+# A Looper algorithm's model_names served requests for those names with the
+# algorithm. Entrypoints name models now: one whose model_names name a recipe
+# with a decision that runs the algorithm, which migrate cannot write for you.
+version: v0.5
+providers:
+  defaults: {model: general}
+  models:
+    - name: general
+      backend_refs: [{name: local, endpoint: "127.0.0.1:8000", protocol: http, weight: 1}]
+recipes:
+  - name: default
+global:
+  integrations:
+    looper:
+      fusion:
+        model_names: [fused]

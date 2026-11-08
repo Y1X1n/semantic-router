@@ -25,13 +25,13 @@ providers:
       provider_model_id: vllm-sr/Decision-2.0-Nox-4B
       backend_refs:
         - provider: systemone-compatible
-          base_url: http://127.0.0.1:8900/v1
-          api_key_env: NATIVE_TEST_TOKEN
+          endpoint: http://127.0.0.1:8900/v1
+          auth: {api_key_env: NATIVE_TEST_TOKEN}
     - name: reviewer
       api_format: openai
       backend_refs:
         - provider: openai-compatible
-          base_url: http://127.0.0.1:8901/v1
+          endpoint: http://127.0.0.1:8901/v1
 global:
   model_catalog:
     deployments:

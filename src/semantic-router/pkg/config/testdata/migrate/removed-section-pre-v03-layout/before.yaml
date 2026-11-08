@@ -1,0 +1,20 @@
+# The layouts before config v0.3, which the previous release refused and its
+# migrate rewrote: flat top-level endpoints, model settings and global
+# blocks, the global layout's modules and the provider catalog's earlier
+# fields. Migrate names the release that rewrites them.
+default_model: general
+vllm_endpoints:
+  - {name: local, address: 127.0.0.1, port: 8000, weight: 1}
+model_config:
+  general: {preferred_endpoints: [local]}
+semantic_cache:
+  enabled: true
+providers:
+  default_model: general
+  models:
+    - name: general
+      access_key: written-inline-test-key
+      endpoints: [{name: local, endpoint: "127.0.0.1:8000"}]
+global:
+  modules:
+    prompt_guard: {threshold: 0.7}

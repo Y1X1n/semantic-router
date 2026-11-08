@@ -122,13 +122,14 @@ func catalogProviderBinding(
 	}
 	instance := modelcatalog.ProviderInstance{
 		Name: instanceName, Catalog: providerID, BaseURL: canonicalBackendURL(backend),
-		Credentials: modelcatalog.CredentialsRef{APIKey: backend.APIKey, APIKeyEnv: backend.APIKeyEnv},
-		Headers:     copyStringMap(backend.ExtraHeaders), APIVersion: backend.APIVersion,
-		AuthHeader: backend.AuthHeader, ChatPath: backend.ChatPath,
+		Credentials: modelcatalog.CredentialsRef{APIKey: backend.APIKey},
+		Headers:     copyStringMap(backend.Headers), APIVersion: backend.APIVersion, ChatPath: backend.ChatPath,
 	}
-	if backend.AuthPrefix != nil {
-		instance.AuthPrefix = *backend.AuthPrefix
-		instance.AuthPrefixSet = true
+	if auth := backend.Auth; auth != nil {
+		instance.Credentials.APIKeyEnv, instance.AuthHeader = auth.APIKeyEnv, auth.Header
+		if auth.Prefix != nil {
+			instance.AuthPrefix, instance.AuthPrefixSet = *auth.Prefix, true
+		}
 	}
 	if backend.Weight != 0 {
 		endpointURL := instance.BaseURL
@@ -227,9 +228,6 @@ func (builder *catalogInputBuilder) addEvaluationRecords(evaluation *CanonicalEv
 }
 
 func canonicalBackendURL(backend CanonicalBackendRef) string {
-	if strings.TrimSpace(backend.BaseURL) != "" {
-		return strings.TrimSpace(backend.BaseURL)
-	}
 	endpoint := strings.TrimSpace(backend.Endpoint)
 	if endpoint == "" || strings.Contains(endpoint, "://") {
 		return endpoint

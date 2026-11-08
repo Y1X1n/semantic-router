@@ -1,0 +1,1 @@
+default_model: removed_section: top-level default_model belongs to the layout before config v0.3; it has no mechanical rewrite: config v0.3, which `vllm-sr config migrate` of vllm-sr 0.4 writes; then run this one

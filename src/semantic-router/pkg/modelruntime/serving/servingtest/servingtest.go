@@ -25,7 +25,7 @@ func Runtime(t testing.TB, deployments map[string]runtimetest.Model) (*serving.R
 			model.ID = name
 		}
 		models = append(models, model)
-		attached[name] = config.ModelDeployment{Provider: config.ModelRuntimeProvider, Endpoint: "", ServedName: model.ID}
+		attached[name] = config.ModelDeployment{Provider: config.ModelRuntimeProvider, Endpoint: "", Model: model.ID}
 	}
 	fake := runtimetest.New(models...)
 	server := httptest.NewServer(fake.Handler())

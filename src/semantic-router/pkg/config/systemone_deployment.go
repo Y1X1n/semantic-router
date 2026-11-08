@@ -26,21 +26,7 @@ type DeploymentAuth struct {
 	Prefix     *string `yaml:"prefix,omitempty" json:"prefix,omitempty"`
 	APIKeyEnv  string  `yaml:"api_key_env,omitempty" json:"api_key_env,omitempty"`
 	APIKeyFile string  `yaml:"api_key_file,omitempty" json:"api_key_file,omitempty"`
-
-	// inline is a key a deprecated field wrote into the configuration
-	// (access_key, api_key); it is never read from or written to auth.
-	inline string
 }
-
-// legacyInlineAuth is the credential of a deprecated inline key, sent as
-// Authorization: Bearer <key> as the deprecated field was.
-func legacyInlineAuth(key string) *DeploymentAuth {
-	return &DeploymentAuth{inline: key}
-}
-
-// HasInlineKey reports whether the credential came from a deprecated inline
-// key.
-func (a *DeploymentAuth) HasInlineKey() bool { return a != nil && a.inline != "" }
 
 // IsSystemOne reports whether a remote System One API serves the deployment.
 func (d ModelDeployment) IsSystemOne() bool {
@@ -87,9 +73,6 @@ func (a *DeploymentAuth) Key() (string, error) {
 	if a == nil {
 		return "", nil
 	}
-	if a.inline != "" {
-		return a.inline, nil
-	}
 	if a.APIKeyFile != "" {
 		data, err := os.ReadFile(a.APIKeyFile)
 		if err != nil {
@@ -107,9 +90,8 @@ func (a *DeploymentAuth) Key() (string, error) {
 }
 
 func (d ModelDeployment) validateSystemOne() error {
-	if d.Artifact != "" || d.Revision != "" || d.ExternalModel != "" || d.Device != "" || d.HasEngineArgs() ||
-		len(d.Replicas) != 0 || d.ServedName != "" || d.PublicName != "" {
-		return fmt.Errorf("a systemone deployment takes a connection block (endpoint, model, auth, headers, timeout_ms, max_retries, tls, limits) and capabilities; artifact, revision, external_model, device, engine arguments, replicas, served_name and public_name belong to model_runtime")
+	if d.Artifact != "" || d.Revision != "" || d.Device != "" || d.HasEngineArgs() || len(d.Replicas) != 0 || d.PublicName != "" {
+		return fmt.Errorf("a systemone deployment takes a connection block (endpoint, model, auth, headers, timeout_ms, max_retries, tls, limits) and capabilities; artifact, revision, device, engine arguments, replicas and public_name belong to model_runtime")
 	}
 	if d.Input.MaxTokens != 0 || (d.Input.Overflow != "" && d.Input.Overflow != "reject") {
 		return fmt.Errorf("a systemone deployment takes no input budget: its API reads one bounded input")
@@ -124,9 +106,6 @@ func (d ModelDeployment) validateSystemOne() error {
 	if strings.TrimSpace(d.Model) == "" || d.Model != strings.TrimSpace(d.Model) {
 		return fmt.Errorf("model must name the model the API answers with, such as vllm-sr/d3-ultra")
 	}
-	if len(d.QuestionTypes) > 0 && d.Capabilities != nil && len(d.Capabilities.QuestionTypes) > 0 {
-		return fmt.Errorf("question_types is the deprecated spelling of capabilities.question_types; set one")
-	}
 	if d.Capabilities != nil && d.Capabilities.Dimensions != 0 {
 		return fmt.Errorf("capabilities.dimensions applies to openai_embeddings deployments")
 	}
@@ -135,10 +114,10 @@ func (d ModelDeployment) validateSystemOne() error {
 		switch questionType {
 		case SystemOneQuestionChoice, SystemOneQuestionNoul, SystemOneQuestionScore, SystemOneQuestionSet, SystemOneQuestionSpan:
 		default:
-			return fmt.Errorf("question_types lists %q; the types are choice, noul, score, set and span", questionType)
+			return fmt.Errorf("capabilities.question_types lists %q; the types are choice, noul, score, set and span", questionType)
 		}
 		if seen[questionType] {
-			return fmt.Errorf("question_types lists %q twice", questionType)
+			return fmt.Errorf("capabilities.question_types lists %q twice", questionType)
 		}
 		seen[questionType] = true
 	}
@@ -178,7 +157,7 @@ func validateDeclaredModalities(modalities []string) error {
 }
 
 func (a *DeploymentAuth) validate() error {
-	if a == nil || a.inline != "" {
+	if a == nil {
 		return nil
 	}
 	if err := a.validateHeader(); err != nil {

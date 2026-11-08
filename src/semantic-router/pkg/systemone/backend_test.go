@@ -44,8 +44,8 @@ providers:
       provider_model_id: native-model
       backend_refs:
         - provider: systemone-compatible
-          base_url: %s/custom/v1
-          api_key_env: SYSTEMONE_BACKEND_TEST_KEY
+          endpoint: %s/custom/v1
+          auth: {api_key_env: SYSTEMONE_BACKEND_TEST_KEY}
 `, server.URL)))
 	if err != nil {
 		t.Fatal(err)

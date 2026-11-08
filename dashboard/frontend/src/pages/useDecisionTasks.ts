@@ -23,15 +23,17 @@ export interface DecisionTask {
 }
 export interface DecisionTaskBinding {
   task_id: string
-  /** The Router's consumer name: a signal type's (see bindingKey) or a rule's (see ruleTarget). */
+  /** The Router's consumer name: a signal type, or selector.<decision>. */
   consumer: string
   recipe: string
   deployment: string
   model: string
-  source: 'recipe' | 'global' | 'default' | 'module'
+  /** rule: a decision selector names its deployment in its algorithm block. */
+  source: 'recipe' | 'global' | 'default' | 'rule'
   ready: boolean
   editable: boolean
-  path: string[]
+  /** Where the binding is written; null for a selector, which its decision writes. */
+  path: string[] | null
   binding: ModelBindingValue
 }
 export interface DecisionTasks {

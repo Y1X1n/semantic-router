@@ -32,7 +32,7 @@ func (b *classifierOptionBuilder) runtime() *classifierModelRuntime {
 	}
 	standalone := standaloneModelRuntime()
 	if b.cfg != nil {
-		standalone.cfg = config.WithModelResources(b.cfg)
+		standalone.cfg = b.cfg
 		if b.cfg.RoutingScope != "" {
 			standalone.recipe = b.cfg.RoutingScope
 		}

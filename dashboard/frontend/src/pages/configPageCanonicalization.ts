@@ -38,7 +38,6 @@ const LEGACY_GLOBAL_ROOT_KEYS = [
   'model_selection',
   'embedding_models',
   'bert_model',
-  'external_models',
   'prompt_guard',
   'classifier',
   'hallucination_mitigation',
@@ -217,19 +216,21 @@ const buildLegacyBackendCatalog = (cfg: ConfigData): Record<string, BackendRefEn
     const profileName =
       typeof endpoint.provider_profile === 'string' ? endpoint.provider_profile.trim() : ''
     const profile = profileName ? asRecord(providerProfiles[profileName]) : undefined
+    const auth: MutableRecord = {}
 
     if (profile) {
-      assignIfMissing(backendRef as MutableRecord, 'base_url', profile.base_url)
+      // A profile's base URL is the endpoint, which wins over the address.
+      assignIfMissing(backendRef as MutableRecord, 'endpoint', profile.base_url)
       assignIfMissing(backendRef as MutableRecord, 'provider', profile.type)
-      assignIfMissing(backendRef as MutableRecord, 'auth_header', profile.auth_header)
-      assignIfMissing(backendRef as MutableRecord, 'auth_prefix', profile.auth_prefix)
-      assignIfMissing(backendRef as MutableRecord, 'extra_headers', profile.extra_headers)
+      assignIfMissing(auth, 'header', profile.auth_header)
+      assignIfMissing(auth, 'prefix', profile.auth_prefix)
+      assignIfMissing(backendRef as MutableRecord, 'headers', profile.extra_headers)
       assignIfMissing(backendRef as MutableRecord, 'api_version', profile.api_version)
       assignIfMissing(backendRef as MutableRecord, 'chat_path', profile.chat_path)
     }
 
     const address = endpoint.address?.trim()
-    if (address) {
+    if (address && !backendRef.endpoint) {
       backendRef.endpoint = endpoint.port > 0 ? `${address}:${endpoint.port}` : address
     }
     if (endpoint.protocol) {
@@ -245,7 +246,10 @@ const buildLegacyBackendCatalog = (cfg: ConfigData): Record<string, BackendRefEn
       backendRef.api_key = endpoint.api_key
     }
     if (endpoint.api_key_env) {
-      backendRef.api_key_env = endpoint.api_key_env
+      auth.api_key_env = endpoint.api_key_env
+    }
+    if (Object.keys(auth).length > 0) {
+      backendRef.auth = auth as BackendRefEntry['auth']
     }
 
     catalog[name] = backendRef
@@ -427,7 +431,6 @@ const promoteLegacyGlobalBlocks = (cfg: ConfigData) => {
   placeBlockIfMissing(['router', 'clear_route_cache'], cfg.clear_route_cache)
   placeBlockIfMissing(['router', 'model_selection'], cfg.model_selection)
   placeBlockIfMissing(['model_catalog', 'embeddings', 'semantic'], cfg.embedding_models)
-  placeBlockIfMissing(['model_catalog', 'external'], cfg.external_models)
   placeBlockIfMissing(['model_catalog', 'modules', 'prompt_guard'], cfg.prompt_guard)
   placeBlockIfMissing(['model_catalog', 'modules', 'classifier'], cfg.classifier)
   placeBlockIfMissing(
@@ -443,7 +446,6 @@ const promoteLegacyGlobalBlocks = (cfg: ConfigData) => {
       placeBlockIfMissing(['model_catalog', 'embeddings', 'semantic'], embeddings.semantic)
     }
     placeBlockIfMissing(['model_catalog', 'system'], legacyGlobalModels.system)
-    placeBlockIfMissing(['model_catalog', 'external'], legacyGlobalModels.external)
     delete globalRoot.models
   }
 
@@ -477,9 +479,6 @@ const promoteLegacyGlobalBlocks = (cfg: ConfigData) => {
           break
         case 'embedding_models':
           placeBlockIfMissing(['model_catalog', 'embeddings', 'semantic'], value)
-          break
-        case 'external_models':
-          placeBlockIfMissing(['model_catalog', 'external'], value)
           break
         case 'system_models':
           placeBlockIfMissing(['model_catalog', 'system'], value)

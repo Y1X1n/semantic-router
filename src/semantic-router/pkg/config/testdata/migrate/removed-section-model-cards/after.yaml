@@ -1,5 +1,7 @@
 # Each model card's fields go on the providers.models[] entry of its name, or
-# of its catalog; a card no entry names becomes a metadata-only entry.
+# of its catalog, once: every entry of that catalog reads them. A card no
+# entry names becomes a metadata-only entry. A card's modality keyword moves
+# with it, and the multimodal form then states it as the model's modalities.
 version: v0.5
 providers:
   defaults: {model: general}
@@ -13,6 +15,13 @@ providers:
       backend_refs: [{name: images, endpoint: "127.0.0.1:8001", protocol: http, weight: 1}]
       capabilities: [image_generation]
       modalities: {input: [text], output: [image]}
+    - name: frontier-primary
+      catalog: openai/gpt-5.4
+      backend_refs: [{name: primary, provider: openai}]
+      description: The frontier model, through either backend.
+    - name: frontier-fallback
+      catalog: openai/gpt-5.4
+      backend_refs: [{name: fallback, provider: openai}]
     - name: reviewer
       description: Reviews answers.
 recipes:

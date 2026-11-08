@@ -146,15 +146,12 @@ func normalizeCanonicalConfig(canonical *CanonicalConfig) (*RouterConfig, error)
 	if err := validateCanonicalContract(canonical); err != nil {
 		return nil, err
 	}
-	backendWarnings := backendConnectionWarnings(canonical.Providers.Models)
-	if err := normalizeBackendConnections(canonical); err != nil {
+	if err := validateBackendConnections(canonical); err != nil {
 		return nil, err
 	}
-	bindingWarnings, err := checkCanonicalBindingKeys(canonical)
-	if err != nil {
+	if err := checkCanonicalBindingKeys(canonical); err != nil {
 		return nil, err
 	}
-	backendWarnings = append(backendWarnings, bindingWarnings...)
 
 	input, err := canonicalCatalogInput(canonical)
 	if err != nil {
@@ -188,10 +185,6 @@ func normalizeCanonicalConfig(canonical *CanonicalConfig) (*RouterConfig, error)
 	if err := applyEffectiveModelRegistry(&cfg, effective, canonical.Providers.Models); err != nil {
 		return nil, err
 	}
-	if err := cfg.translateModelResources(); err != nil {
-		return nil, err
-	}
-	cfg.ModelResourceWarnings = append(cfg.ModelResourceWarnings, backendWarnings...)
 	cfg.EffectiveModelRegistry = effective
 	cfg.Evaluation = cloneCanonicalEvaluation(canonical.Evaluation)
 	if err := validateNativeRoutingConfig(&cfg); err != nil {

@@ -175,18 +175,14 @@ export interface BackendRefAuth {
 
 export interface BackendRefEntry {
   name?: string
+  /** host:port with protocol, or a full URL. */
   endpoint?: string
   protocol?: 'http' | 'https'
   weight?: number
-  base_url?: string
   provider?: string
-  auth_header?: string
-  auth_prefix?: string
-  extra_headers?: Record<string, string>
   api_version?: string
   chat_path?: string
   api_key?: string
-  api_key_env?: string
   auth?: BackendRefAuth
   headers?: Record<string, string>
 }
@@ -558,11 +554,9 @@ export interface ObservabilityConfig {
 }
 
 export interface LooperConfig {
-  endpoint?: string
-  model_endpoints?: Record<string, string>
   grpc_max_msg_size_mb?: number
+  max_response_bytes_mb?: number
   timeout_seconds?: number
-  retry_count?: number
   headers?: Record<string, string>
 }
 
@@ -679,33 +673,6 @@ export interface ModalityDetectorConfig {
   lower_threshold_ratio?: number
 }
 
-export interface ExternalModelEndpointConfig {
-  address?: string
-  port?: number
-  protocol?: string
-  name?: string
-  use_chat_template?: boolean
-  prompt_template?: string
-}
-
-/**
- * @deprecated The Router reads each external model as a deployment with
- * provider classify, openai_chat or openai_embeddings; declare that instead.
- */
-export interface ExternalModelConfig {
-  name?: string
-  llm_provider: string
-  model_role: string
-  llm_endpoint?: ExternalModelEndpointConfig
-  llm_model_name?: string
-  llm_timeout_seconds?: number
-  parser_type?: string
-  threshold?: number
-  access_key?: string
-  max_tokens?: number
-  temperature?: number
-}
-
 /** Model paths a deprecated system line names, by line; read-only in the Dashboard. */
 export type DeprecatedSystemModelLines = Partial<
   Record<
@@ -806,7 +773,6 @@ export type ModelDeploymentProvider =
   | 'model_runtime'
   | 'systemone'
   | 'openai_embeddings'
-  | 'classify'
   | 'openai_chat'
 
 /** A credential read from an environment variable or a file, never written inline. */
@@ -845,8 +811,6 @@ export interface ModelReplica {
   endpoint?: string
   /** The served model an attached worker answers with. */
   model?: string
-  /** @deprecated Use model. */
-  served_name?: string
 }
 
 /**
@@ -856,8 +820,7 @@ export interface ModelReplica {
  * max_retries, tls, limits and capabilities.
  */
 export interface CanonicalModelDeployment {
-  /** `http` with external_model is the deprecated form of classify, openai_chat or openai_embeddings. */
-  provider?: ModelDeploymentProvider | 'http'
+  provider?: ModelDeploymentProvider
   artifact?: string
   revision?: string
   device?: string
@@ -871,8 +834,6 @@ export interface CanonicalModelDeployment {
   /** A managed model_runtime deployment's calibrated operating points. */
   operating_point?: { path: string; sha256: string }
   replicas?: ModelReplica[]
-  /** @deprecated Use model. */
-  served_name?: string
   public_name?: string
   endpoint?: string
   /** The remote model ID; on an attached model_runtime endpoint, the served model. */
@@ -887,10 +848,6 @@ export interface CanonicalModelDeployment {
   tls?: DeploymentTLS
   limits?: DeploymentLimits
   capabilities?: DeploymentCapabilities
-  /** @deprecated Use capabilities.question_types. */
-  question_types?: string[]
-  /** @deprecated Declare a classify, openai_chat or openai_embeddings deployment. */
-  external_model?: string
 }
 
 export interface CanonicalModelCatalogConfig {
@@ -898,8 +855,6 @@ export interface CanonicalModelCatalogConfig {
   deployments?: Record<string, CanonicalModelDeployment>
   embeddings?: CanonicalEmbeddingCatalogConfig
   system?: CanonicalSystemModels
-  /** @deprecated Declare a deployment with provider classify, openai_chat or openai_embeddings. */
-  external?: ExternalModelConfig[]
   kbs?: Array<Record<string, unknown>>
   modules?: CanonicalModelModulesConfig
   admission?: Record<string, Record<string, unknown>>
@@ -1414,7 +1369,6 @@ export interface ConfigData {
   memory?: MemoryConfig
   hallucination_mitigation?: HallucinationMitigationConfig
   feedback_detector?: FeedbackDetectorConfig
-  external_models?: ExternalModelConfig[]
   embedding_models?: CanonicalEmbeddingCatalogConfig
   api?: APIConfig
   observability?: ObservabilityConfig
@@ -1506,12 +1460,8 @@ export const normalizeProviderModelEndpoints = (model: {
 }): Endpoint[] => {
   if (Array.isArray(model.backend_refs) && model.backend_refs.length > 0) {
     return model.backend_refs.map((backend, index) => {
-      const baseURL = typeof backend.base_url === 'string' ? backend.base_url.trim() : ''
-      const endpoint =
-        typeof backend.endpoint === 'string' && backend.endpoint.trim()
-          ? backend.endpoint.trim()
-          : baseURL
-      const protocol = backend.protocol || (baseURL.startsWith('https://') ? 'https' : 'http')
+      const endpoint = typeof backend.endpoint === 'string' ? backend.endpoint.trim() : ''
+      const protocol = backend.protocol || (endpoint.startsWith('https://') ? 'https' : 'http')
       return normalizeEndpoint(
         {
           name: backend.name,
@@ -1524,52 +1474,6 @@ export const normalizeProviderModelEndpoints = (model: {
     })
   }
   return normalizeEndpoints(model.endpoints)
-}
-
-export const mergeProviderBackendRefs = (
-  existingRefs: BackendRefEntry[] | undefined,
-  endpoints: Endpoint[],
-  accessKey?: string,
-): BackendRefEntry[] => {
-  const existing = Array.isArray(existingRefs) ? existingRefs : []
-
-  return endpoints.map((ep, index) => {
-    const matched = existing.find((ref) => ref.name === ep.name) || existing[index]
-
-    const merged: BackendRefEntry = {
-      ...(matched || {}),
-      name: ep.name,
-      protocol: ep.protocol,
-      weight: ep.weight,
-    }
-
-    const matchedDisplayEndpoint =
-      typeof matched?.endpoint === 'string' && matched.endpoint.trim()
-        ? matched.endpoint.trim()
-        : typeof matched?.base_url === 'string'
-          ? matched.base_url.trim()
-          : ''
-
-    if (matched?.base_url && !matched?.endpoint) {
-      if (ep.endpoint.trim() && ep.endpoint.trim() !== matchedDisplayEndpoint) {
-        merged.base_url = ep.endpoint.trim()
-      } else {
-        merged.base_url = matched.base_url
-      }
-      delete merged.endpoint
-    } else {
-      merged.endpoint = ep.endpoint
-    }
-
-    if (accessKey?.trim()) {
-      merged.api_key = accessKey.trim()
-      delete merged.api_key_env
-    } else if (!matched?.api_key && matched?.api_key_env) {
-      delete merged.api_key
-    }
-
-    return merged
-  })
 }
 
 export const TABLE_COLUMN_WIDTH = {

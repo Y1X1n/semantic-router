@@ -253,7 +253,7 @@ test.describe('Router model inventory surfaces', () => {
           name: 'balanced',
           routing: {
             signals: {
-              decision: questions,
+              systemone: questions,
               pii: [{ name: 'personal_data' }],
               jailbreak: [{ name: 'prompt_attack' }],
               safety: [{ name: 'unsafe_request' }],

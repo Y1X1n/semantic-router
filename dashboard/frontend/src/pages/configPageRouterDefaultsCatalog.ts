@@ -107,7 +107,6 @@ export const DEFAULT_SECTIONS: Record<RouterSystemKey, unknown> = {
       max_entries_per_store: 100000,
     },
   } satisfies VectorStoreConfig,
-  external_models: [],
   admission: {},
   system_models: {
     decision_model: { deployment: 'primary' },
@@ -146,7 +145,6 @@ export const DEFAULT_SECTIONS: Record<RouterSystemKey, unknown> = {
     },
   } satisfies ObservabilityConfig,
   looper: {
-    endpoint: 'http://localhost:8899/v1/chat/completions',
     timeout_seconds: 1200,
     headers: {},
   } satisfies LooperConfig,
@@ -226,11 +224,6 @@ export const SECTION_META: Record<
     description:
       'Document ingestion, vector backend selection, and file-backed knowledge-store defaults.',
   },
-  external_models: {
-    title: 'External Models',
-    eyebrow: 'Model Catalog',
-    description: 'Deprecated external LLM integrations, kept as the configuration declares them.',
-  },
   admission: {
     title: 'Model Admission',
     eyebrow: 'Model Catalog',
@@ -267,7 +260,7 @@ export const SECTION_META: Record<
   looper: {
     title: 'Looper',
     eyebrow: 'Integrations',
-    description: 'Multi-model execution endpoint, timeout policy, and per-request headers.',
+    description: 'Timeout policy and per-request headers for the model calls a Looper makes.',
   },
   clear_route_cache: {
     title: 'Route Cache Reset',

@@ -22,8 +22,7 @@ API the Router speaks to it.
 | --- | --- | --- |
 | `model_runtime` | The built-in model runtime: managed (the Router starts it) or attached (`endpoint` set) | Anything its model card serves |
 | `systemone` | `POST <endpoint>` and `GET <endpoint>/models` of a System One API | Every question-style signal and selector |
-| `classify` | `POST <endpoint>/classify` | The models of the masking, response-jailbreak and hallucination plugins (`pii`, `jailbreak` and `hallucination` bindings) |
-| `openai_chat` | `POST <endpoint>/chat/completions` | The response-jailbreak plugin's guard and the hallucination plugin's detector |
+| `openai_chat` | `POST <endpoint>/chat/completions` | The memory query rewrite (`global.stores.memory.query_rewrite`) |
 | `openai_embeddings` | `POST <endpoint>/embeddings` | Embeddings |
 
 The Router refuses at load a deployment given a signal it cannot answer.
@@ -63,7 +62,7 @@ global:
         replicas: [{device: cpu}, {endpoint: http://worker-2.example.com:8100, model: kai}]
       # Connection block: an attached model_runtime and every remote provider.
       remote-example:
-        provider: systemone              # or classify, openai_chat, openai_embeddings
+        provider: systemone              # or openai_chat, openai_embeddings
         endpoint: https://api.example.com/v1/systemone  # full URL; unix:///abs.sock for an attached runtime
         model: vllm-sr/d3-ultra          # the remote model; an attached runtime's served model
         auth: {header: Authorization, prefix: Bearer, api_key_env: EXAMPLE_KEY}  # or api_key_file: /abs/path
@@ -100,7 +99,7 @@ deployment with `endpoint`) and every remote provider.
 
 | Field | Meaning | Limits |
 | --- | --- | --- |
-| `endpoint` | The full URL of the API, path prefix included. The Router appends the operation path (`/classify`, `/chat/completions`, `/embeddings`); a systemone endpoint is the URL questions are posted to. An attached runtime may use `unix:///abs/path.sock` | `http` or `https`; no credentials or fragment |
+| `endpoint` | The full URL of the API, path prefix included. The Router appends the operation path (`/chat/completions`, `/embeddings`); a systemone endpoint is the URL questions are posted to. An attached runtime may use `unix:///abs/path.sock` | `http` or `https`; no credentials or fragment |
 | `model` | The model the remote API answers with; on an attached runtime, the served model | Required for `systemone`, `openai_chat`, `openai_embeddings` |
 | `auth` | `header` (default `Authorization`), `prefix` (default `Bearer`; `""` sends the bare key), and exactly one of `api_key_env` or `api_key_file` (an absolute path, read on each call so a rotated key applies) | A key is never written in the configuration |
 | `headers` | Further non-secret headers | `Authorization`, `Proxy-Authorization`, `X-Api-Key`, `Api-Key`, `Ocp-Apim-Subscription-Key`, `Cookie` and the `auth` header are refused |

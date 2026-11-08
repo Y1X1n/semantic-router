@@ -532,7 +532,6 @@ def _compose(source, refs, model_names, config=None):
         "balance",
         bundle="mom-v1",
         config=config or builtin_recipes.load_provider_config(source),
-        config_path=source,
         bindings=refs,
         model_names=model_names,
     )

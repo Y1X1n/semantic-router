@@ -7,7 +7,6 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/vllm-project/semantic-router/src/semantic-router/pkg/fallback"
-	"github.com/vllm-project/semantic-router/src/semantic-router/pkg/observability/logging"
 )
 
 // CanonicalGlobal contains router-managed runtime defaults plus sparse
@@ -91,7 +90,6 @@ type CanonicalModelCatalog struct {
 	Deployments map[string]ModelDeployment `yaml:"deployments,omitempty"`
 	Embeddings  CanonicalEmbeddingModels   `yaml:"embeddings"`
 	System      CanonicalSystemModels      `yaml:"system"`
-	External    []ExternalModelConfig      `yaml:"external,omitempty"`
 	Modules     CanonicalModelModules      `yaml:"modules"`
 	Admission   map[string]AdmissionConfig `yaml:"admission,omitempty"`
 	// SignalTimeoutMs is the deadline of a request's model-runtime signals,
@@ -220,13 +218,6 @@ func applyCanonicalStoreGlobal(cfg *RouterConfig, stores CanonicalStoreGlobal) {
 func applyCanonicalIntegrationGlobal(cfg *RouterConfig, integrations CanonicalIntegrationGlobal) {
 	cfg.KVTransfer = integrations.KVTransfer
 	cfg.Looper = integrations.Looper
-	if integrations.Looper.Endpoint != "" {
-		logging.ComponentWarnEvent("config", "looper_endpoint_deprecated", map[string]interface{}{
-			"field":  "global.integrations.looper.endpoint",
-			"reason": "the Router makes Looper calls in process; the field is ignored and goes in the next release",
-			"fix":    "remove it, or run vllm-sr config migrate",
-		})
-	}
 }
 
 func applyCanonicalModelCatalogGlobal(cfg *RouterConfig, modelCatalog CanonicalModelCatalog) {
@@ -234,7 +225,6 @@ func applyCanonicalModelCatalogGlobal(cfg *RouterConfig, modelCatalog CanonicalM
 	cfg.EmbeddingDeployment = modelCatalog.Embeddings.Default.Deployment
 	cfg.ModelDeployments = cloneModelMap(modelCatalog.Deployments)
 	cfg.GlobalModelBindings = cloneModelMap(modelCatalog.Bindings)
-	cfg.ExternalModels = append([]ExternalModelConfig(nil), modelCatalog.External...)
 	cfg.PromptCompression = modelCatalog.Modules.PromptCompression
 	cfg.ModelAdmission = cloneAdmissionMap(modelCatalog.Admission)
 	cfg.ModelSignalTimeoutMs = modelCatalog.SignalTimeoutMs

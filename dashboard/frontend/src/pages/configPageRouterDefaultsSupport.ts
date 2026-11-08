@@ -93,7 +93,7 @@ export const ROUTER_LAYER_META: Record<RouterLayerKey, { title: string; descript
   },
   model_catalog: {
     title: 'Model Catalog',
-    description: 'Router-owned embedding catalogs, external models, and model-backed modules.',
+    description: 'Router-owned embedding catalogs, decision model bindings, and model-backed modules.',
   },
 }
 
@@ -118,7 +118,6 @@ const LEGACY_ROOT_KEYS: Partial<Record<RouterSystemKey, keyof ConfigData>> = {
   router_replay: 'router_replay',
   memory: 'memory',
   response_cache: 'response_cache',
-  external_models: 'external_models',
   embedding_models: 'embedding_models',
   observability: 'observability',
   looper: 'looper',
@@ -318,24 +317,6 @@ function summaryForKey(key: RouterSystemKey, data: unknown): RouterSectionSummar
         { label: 'Embedding', value: embeddingDeploymentSummary(section) },
         { label: 'Enabled', value: stringOrFallback(section?.enabled, 'Disabled') },
       ]
-    case 'external_models': {
-      const models = asArray(data) || []
-      const roles = models
-        .map((item) => (typeof item.model_role === 'string' ? item.model_role : null))
-        .filter((value): value is string => Boolean(value))
-      return [
-        { label: 'Configured models', value: `${models.length}` },
-        { label: 'Roles', value: roles.length ? roles.join(', ') : 'Not set' },
-        {
-          label: 'Providers',
-          value:
-            models
-              .map((item) => (typeof item.llm_provider === 'string' ? item.llm_provider : null))
-              .filter(Boolean)
-              .join(', ') || 'Not set',
-        },
-      ]
-    }
     case 'admission':
       return [{ label: 'Policies', value: `${section ? Object.keys(section).length : 0}` }]
     case 'embedding_models':
@@ -371,7 +352,6 @@ function summaryForKey(key: RouterSystemKey, data: unknown): RouterSectionSummar
       ]
     case 'looper':
       return [
-        { label: 'Endpoint', value: stringOrFallback(section?.endpoint) },
         {
           label: 'Timeout',
           value: section?.timeout_seconds ? `${section.timeout_seconds}s` : 'Not set',
@@ -410,13 +390,6 @@ function badgesForKey(key: RouterSystemKey, data: unknown): RouterSectionBadge[]
 
   if (key === 'embedding_models') {
     badges.push(...embeddingModelsBadges(data))
-  }
-
-  if (key === 'external_models') {
-    const models = asArray(data) || []
-    if (models.length === 0) {
-      badges.push({ label: 'No external models', tone: 'inactive' })
-    }
   }
 
   return badges
@@ -610,8 +583,6 @@ function curatedFieldsForKey(key: RouterSystemKey): FieldConfig[] {
         routerStructuredField(key, 'milvus'),
         routerStructuredField(key, 'llama_stack'),
       ]
-    case 'external_models':
-      return [routerStructuredField(key, 'items')]
     case 'embedding_models':
       return embeddingModelsFields()
     case 'prompt_compression':
@@ -703,13 +674,6 @@ function curatedFieldsForKey(key: RouterSystemKey): FieldConfig[] {
       return [routerStructuredField(key, 'metrics'), routerStructuredField(key, 'tracing')]
     case 'looper':
       return [
-        { name: 'enabled', label: 'Enable Looper', type: 'boolean' },
-        {
-          name: 'endpoint',
-          label: 'Endpoint',
-          type: 'text',
-          placeholder: 'http://localhost:8899/v1/chat/completions',
-        },
         {
           name: 'timeout_seconds',
           label: 'Timeout (seconds)',
@@ -739,9 +703,6 @@ function withoutModelFields(module: unknown): Record<string, unknown> {
 
 function fieldsForKey(key: RouterSystemKey): FieldConfig[] {
   const curated = curatedFieldsForKey(key)
-  if (key === 'external_models') {
-    return curated
-  }
   if (key === 'admission') {
     return [
       generatedRouterValueField(
@@ -764,9 +725,6 @@ function fieldsForKey(key: RouterSystemKey): FieldConfig[] {
 function editDataForKey(key: RouterSystemKey, data: unknown): EditFormData {
   if (key === 'clear_route_cache') {
     return { value: Boolean(data) }
-  }
-  if (key === 'external_models') {
-    return { items: Array.isArray(data) ? data : cloneDefaultSection(key) }
   }
   if (key === 'admission') {
     return { value: asObject(data) || cloneDefaultSection(key) }
@@ -800,12 +758,6 @@ function saveForKey(key: RouterSystemKey, rawData: EditFormData): Partial<Config
     return buildNestedPatch(
       CURATED_ROUTER_SECTIONS[key].path,
       Boolean(data.value),
-    ) as Partial<ConfigData>
-  }
-  if (key === 'external_models') {
-    return buildNestedPatch(
-      CURATED_ROUTER_SECTIONS[key].path,
-      Array.isArray(data.items) ? data.items : [],
     ) as Partial<ConfigData>
   }
   if (key === 'admission') {
@@ -884,12 +836,6 @@ export function buildRouterSectionCards(ctx: RouterSectionContext): RouterSectio
       editData: editDataForKey(key, view),
       editFields: fieldsForKey(key),
       save: (nextData: EditFormData) => saveForKey(key, nextData),
-      ...(key === 'external_models'
-        ? {
-            deprecation:
-              'External models are deprecated: the Router reads each one as a deployment. Declare remote models in Deployments with provider classify, openai_chat or openai_embeddings, then bind signals to them.',
-          }
-        : {}),
     }
   })
 

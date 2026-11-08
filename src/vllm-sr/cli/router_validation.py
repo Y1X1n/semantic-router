@@ -53,11 +53,11 @@ class RouterVerdict:
     valid: bool
     error: str = ""
     warnings: tuple[RouterWarning, ...] = field(default_factory=tuple)
-    # With migrate: the document with its deprecated model fields in the forms
-    # that replace them, the deprecated fields that have none, and why the
-    # Router could not write it.
+    # With migrate: the document with its removed and renamed forms in the
+    # forms that replace them, the notes of what migrate rewrote and what an
+    # operator must do, and why the Router could not write it.
     migrated: str = ""
-    kept: tuple[RouterWarning, ...] = field(default_factory=tuple)
+    notes: tuple[RouterWarning, ...] = field(default_factory=tuple)
     migration_error: str = ""
 
 
@@ -280,7 +280,7 @@ def _run_validation(
         error=str(report.get("error") or ""),
         warnings=_warnings(report.get("warnings")),
         migrated=str(report.get("migrated") or ""),
-        kept=_warnings(report.get("kept")),
+        notes=_warnings(report.get("notes")),
         migration_error=str(report.get("migration_error") or ""),
     )
 

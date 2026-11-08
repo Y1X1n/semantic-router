@@ -1,11 +1,10 @@
 import { QUESTION_TYPES } from './systemOnePlayground'
 import type { FieldSchema } from '../lib/dslSchemas'
 import type { DecisionTasks } from './useDecisionTasks'
-import { bindingDeployment, bindingKey, bindingSpellings } from './modelBindings'
+import { bindingDeployment } from './modelBindings'
 
 interface BoundResource {
   deployment?: string
-  contract?: string
   explicit?: boolean
 }
 export type SignalBindings = Record<string, BoundResource>
@@ -27,20 +26,12 @@ function isHazardKey(key: string) {
 
 function boundResource(value: unknown): BoundResource | undefined {
   const deployment = bindingDeployment(value)
-  if (!deployment) return undefined
-  const contract =
-    value && typeof value === 'object' ? (value as { contract?: unknown }).contract : undefined
-  return { deployment, contract: typeof contract === 'string' ? contract : undefined }
+  return deployment ? { deployment } : undefined
 }
 
-// Older configurations bound a rule by its rule key (classifier.<rule>,
-// safety.<rule>, ...); the Router still reads it after the rule's deployment.
 function explicitResource(bindings: Record<string, unknown> | undefined, key: string) {
-  for (const candidate of bindingSpellings(key)) {
-    const resource = boundResource(bindings?.[candidate])
-    if (resource) return { ...resource, explicit: true }
-  }
-  return undefined
+  const resource = boundResource(bindings?.[key])
+  return resource ? { ...resource, explicit: true } : undefined
 }
 
 function selectedResource(
@@ -132,7 +123,7 @@ export function signalAvailability(
       (item) =>
         item.recipe === scope.recipe &&
         item.task_id === task.id &&
-        (!key || bindingKey(item.consumer) === bindingKey(key)),
+        (!key || item.consumer === key),
     )
     const resource: BoundResource | undefined = own
       ? { deployment: own, explicit: true }
@@ -143,12 +134,7 @@ export function signalAvailability(
     const target = data.deployments.find((item) => item.deployment === deployment)
     // A deployment the task catalog does not list answers through its own
     // head or API; the Router checks that it can when the config is saved.
-    if (
-      !target &&
-      resource?.deployment &&
-      (resource.explicit || (resource.contract && resource.contract !== 'decision.v1'))
-    )
-      continue
+    if (!target && resource?.deployment && resource.explicit) continue
     const capability = target?.tasks.find((item) => item.task_id === task.id)
     if (!capability?.supported)
       return {
